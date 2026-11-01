@@ -4,6 +4,7 @@ import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { DashboardView } from '@/components/views/DashboardView';
+import { MoneyDashboardView } from '@/components/views/MoneyDashboardView';
 import { TransactionsView } from '@/components/views/TransactionsView';
 import { BudgetView } from '@/components/views/BudgetView';
 import { SavingsView } from '@/components/views/SavingsView';
@@ -19,6 +20,8 @@ export function ScreenRouter() {
     switch (currentScreen) {
       case 'dashboard':
         return <DashboardView />;
+      case 'money':
+        return <MoneyDashboardView />;
       case 'transactions':
         return <TransactionsView />;
       case 'budget':

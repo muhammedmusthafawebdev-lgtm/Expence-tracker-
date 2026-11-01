@@ -1,6 +1,6 @@
 export type TransactionType = 'income' | 'expense';
 
-export type PaymentMethod = 'UPI' | 'Cash' | 'Net Banking' | 'Debit Card' | 'Other';
+export type PaymentMethod = 'UPI' | 'Cash' | 'Net Banking' | 'Debit Card' | 'Credit Card' | 'Other';
 
 export interface Transaction {
   id: string;
@@ -24,6 +24,7 @@ export interface Category {
   color: string;
   studentGroup: StudentAudience;
   isCustom?: boolean;
+  groupName?: string;
 }
 
 // Strictly simplified to Monthly and Yearly per requirements
@@ -67,6 +68,7 @@ export interface UserProfile {
 }
 
 export type DashboardWidgetId =
+  | 'moneyDashboard'
   | 'balanceSummary'
   | 'incomeExpenseChart'
   | 'categorySpendingChart'
@@ -83,6 +85,7 @@ export interface DashboardWidgetItem {
 }
 
 export interface DashboardWidgetConfig {
+  moneyDashboard: boolean;
   balanceSummary: boolean;
   incomeExpenseChart: boolean;
   categorySpendingChart: boolean;
@@ -91,9 +94,10 @@ export interface DashboardWidgetConfig {
   recentTransactions: boolean;
 }
 
-// Retained views: dashboard, transactions, budget, savings, reports, profile, settings, recently-deleted
+// Retained views: dashboard, money, transactions, budget, savings, reports, profile, settings, recently-deleted
 export type AppScreen =
   | 'dashboard'
+  | 'money'
   | 'transactions'
   | 'budget'
   | 'savings'

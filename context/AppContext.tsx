@@ -107,6 +107,13 @@ interface AppContextType {
 
 const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetItem[] = [
   {
+    id: 'moneyDashboard',
+    label: 'Money Overview & Spending Donut',
+    desc: 'Summary metrics & scroll-animated circular expense breakdown',
+    visible: true,
+    pinned: true,
+  },
+  {
     id: 'balanceSummary',
     label: 'Balance Overview',
     desc: 'Available balance, period income, expenses, and allocated savings',
@@ -179,6 +186,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Computed widgetConfig for backwards compatibility
   const widgetConfig = useMemo<DashboardWidgetConfig>(() => {
     const config: DashboardWidgetConfig = {
+      moneyDashboard: true,
       balanceSummary: true,
       incomeExpenseChart: true,
       categorySpendingChart: true,

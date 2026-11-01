@@ -21,6 +21,10 @@ export function Header() {
       title: 'Finance Dashboard',
       subtitle: 'Overview of income, expenses, and budget limits',
     },
+    money: {
+      title: 'Money Dashboard',
+      subtitle: 'Balance overview and animated circular spending breakdown',
+    },
     transactions: {
       title: 'Transactions',
       subtitle: 'Record, search, and review financial entries',

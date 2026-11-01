@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import {
   LayoutDashboard,
+  CircleDollarSign,
   ArrowLeftRight,
   PieChart,
   PiggyBank,
@@ -35,6 +36,7 @@ export function Sidebar() {
     icon: React.ElementType;
   }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'money', label: 'Money Overview', icon: CircleDollarSign },
     { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight },
     { id: 'budget', label: 'Budgets', icon: PieChart },
     { id: 'savings', label: 'Savings', icon: PiggyBank },

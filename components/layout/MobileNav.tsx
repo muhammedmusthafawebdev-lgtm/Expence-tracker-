@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import {
   LayoutDashboard,
+  CircleDollarSign,
   ArrowLeftRight,
   PieChart,
   PiggyBank,
@@ -36,6 +37,12 @@ export function MobileNav() {
     badge?: number;
     desc: string;
   }[] = [
+    {
+      id: 'money',
+      label: 'Money Dashboard',
+      icon: CircleDollarSign,
+      desc: 'Overview & animated circular spending chart',
+    },
     { id: 'reports', label: 'Financial Reports', icon: FileBarChart, desc: 'Printable financial statements' },
     { id: 'profile', label: 'Student Profile', icon: User, desc: 'College info & allowance' },
     { id: 'settings', label: 'Settings', icon: Settings, desc: 'Theme, currency & widgets' },

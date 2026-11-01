@@ -18,6 +18,7 @@ import { formatINR, paiseToRupees, getBudgetStatus } from '@/lib/calculations/fi
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DashboardWidgetId } from '@/types';
+import { CircularExpenseChart } from '@/components/money/CircularExpenseChart';
 import {
   ResponsiveContainer,
   BarChart,
@@ -133,6 +134,17 @@ export function DashboardView() {
   // Render individual widget block
   const renderWidget = (id: DashboardWidgetId) => {
     switch (id) {
+      case 'moneyDashboard':
+        return (
+          <div key={id} className="w-full">
+            <CircularExpenseChart
+              transactions={periodTransactions}
+              title={`Spending by Category (${dateFilter.replace('_', ' ')})`}
+              subtitle="Scroll-triggered circular breakdown with real-time proportions"
+            />
+          </div>
+        );
+
       case 'balanceSummary':
         return (
           <div key={id} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
