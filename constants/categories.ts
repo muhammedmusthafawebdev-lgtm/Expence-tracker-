@@ -1,0 +1,173 @@
+import { Category } from '@/types';
+
+export const INITIAL_STUDENT_CATEGORIES: Category[] = [
+  // --- EXPENSE CATEGORIES: COLLEGE & UNIVERSITY ---
+  {
+    id: 'cat_mess',
+    name: 'Mess & Canteen',
+    type: 'expense',
+    icon: 'Utensils',
+    color: '#F59E0B',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_hostel',
+    name: 'Hostel & PG Rent',
+    type: 'expense',
+    icon: 'Home',
+    color: '#6366F1',
+    studentGroup: 'hostel',
+  },
+  {
+    id: 'cat_tuition',
+    name: 'College Fees & Tuition',
+    type: 'expense',
+    icon: 'GraduationCap',
+    color: '#2563EB',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_books',
+    name: 'Books & Stationery',
+    type: 'expense',
+    icon: 'BookOpen',
+    color: '#10B981',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_transit',
+    name: 'Metro & Bus Pass',
+    type: 'expense',
+    icon: 'Bus',
+    color: '#06B6D4',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_printing',
+    name: 'Printing & Lab Manuals',
+    type: 'expense',
+    icon: 'Printer',
+    color: '#8B5CF6',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_tech',
+    name: 'Internet & Student Software',
+    type: 'expense',
+    icon: 'Laptop',
+    color: '#EC4899',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_social',
+    name: 'Outing & Campus Snacks',
+    type: 'expense',
+    icon: 'Coffee',
+    color: '#F97316',
+    studentGroup: 'college',
+  },
+
+  // --- EXPENSE CATEGORIES: COMPETITIVE EXAM ASPIRANTS ---
+  {
+    id: 'cat_coaching',
+    name: 'Coaching & Test Series',
+    type: 'expense',
+    icon: 'Target',
+    color: '#3B82F6',
+    studentGroup: 'exam',
+  },
+  {
+    id: 'cat_study_library',
+    name: 'Study Hall & Library Seat',
+    type: 'expense',
+    icon: 'Library',
+    color: '#14B8A6',
+    studentGroup: 'exam',
+  },
+  {
+    id: 'cat_exam_fees',
+    name: 'Competitive Exam Forms',
+    type: 'expense',
+    icon: 'FileText',
+    color: '#A855F7',
+    studentGroup: 'exam',
+  },
+
+  // --- EXPENSE CATEGORIES: SCHOOL STUDENTS ---
+  {
+    id: 'cat_school_bus',
+    name: 'School Van / Bus',
+    type: 'expense',
+    icon: 'BusFront',
+    color: '#0EA5E9',
+    studentGroup: 'school',
+  },
+  {
+    id: 'cat_school_uniform',
+    name: 'Uniform & Sports Kit',
+    type: 'expense',
+    icon: 'Shirt',
+    color: '#64748B',
+    studentGroup: 'school',
+  },
+  {
+    id: 'cat_school_snacks',
+    name: 'Tiffin & Canteen',
+    type: 'expense',
+    icon: 'Apple',
+    color: '#E11D48',
+    studentGroup: 'school',
+  },
+
+  // --- INCOME CATEGORIES ---
+  {
+    id: 'cat_pocket_money',
+    name: 'Monthly Allowance / Pocket Money',
+    type: 'income',
+    icon: 'Wallet',
+    color: '#16A34A',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_scholarship',
+    name: 'Scholarship / Grant',
+    type: 'income',
+    icon: 'Award',
+    color: '#059669',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_tutoring',
+    name: 'Home Tutoring / Teaching',
+    type: 'income',
+    icon: 'BookMarked',
+    color: '#0D9488',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_freelance',
+    name: 'Freelance & Part-time Work',
+    type: 'income',
+    icon: 'Briefcase',
+    color: '#2563EB',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_cash_prize',
+    name: 'Hackathon & Contest Prize',
+    type: 'income',
+    icon: 'Trophy',
+    color: '#D97706',
+    studentGroup: 'college',
+  },
+  {
+    id: 'cat_misc_income',
+    name: 'Family Gift & Other Income',
+    type: 'income',
+    icon: 'Gift',
+    color: '#7C3AED',
+    studentGroup: 'college',
+  },
+];
+
+export const PAYMENT_METHODS = ['UPI', 'Cash', 'Net Banking', 'Debit Card', 'Other'] as const;

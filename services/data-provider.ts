@@ -1,0 +1,303 @@
+import {
+  Transaction,
+  Budget,
+  SavingsGoal,
+  Category,
+  UserProfile,
+  TransactionType,
+} from '@/types';
+import { INITIAL_STUDENT_CATEGORIES } from '@/constants/categories';
+
+export interface TransactionFilters {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  categoryId?: string;
+  type?: TransactionType | 'all';
+  minAmountPaise?: number;
+  maxAmountPaise?: number;
+}
+
+export interface IDataProvider {
+  readonly isBackendConnected: boolean;
+
+  // Transactions
+  getTransactions(filters?: TransactionFilters): Promise<Transaction[]>;
+  createTransaction(data: Omit<Transaction, 'id' | 'createdAt'>): Promise<{
+    success: boolean;
+    persisted: boolean;
+    item?: Transaction;
+    warningMessage: string;
+  }>;
+  deleteTransaction(id: string): Promise<boolean>;
+  restoreTransaction(id: string): Promise<boolean>;
+  permanentlyDeleteTransaction(id: string): Promise<boolean>;
+  emptyTrash(): Promise<number>;
+  getRecentlyDeleted(): Promise<Transaction[]>;
+
+  // Budgets
+  getBudgets(): Promise<Budget[]>;
+  createBudget(data: Omit<Budget, 'id' | 'createdAt'>): Promise<{
+    success: boolean;
+    persisted: boolean;
+    item?: Budget;
+    warningMessage: string;
+  }>;
+  deleteBudget(id: string): Promise<boolean>;
+
+  // Savings
+  getSavingsGoals(): Promise<SavingsGoal[]>;
+  createSavingsGoal(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'allocations' | 'currentAmountPaise'>): Promise<{
+    success: boolean;
+    persisted: boolean;
+    item?: SavingsGoal;
+    warningMessage: string;
+  }>;
+  addSavingsAllocation(
+    goalId: string,
+    amountPaise: number,
+    type: 'deposit' | 'withdrawal',
+    note?: string
+  ): Promise<{ success: boolean; persisted: boolean; warningMessage: string }>;
+
+  // Categories
+  getCategories(): Promise<Category[]>;
+  addCustomCategory(data: Omit<Category, 'id' | 'isCustom'>): Promise<Category>;
+
+  // Profile & Settings
+  getUserProfile(): Promise<UserProfile>;
+  updateUserProfile(data: Partial<UserProfile>): Promise<UserProfile>;
+}
+
+/**
+ * Standard Frontend-Only Data Provider
+ * Adheres strictly to the Zero Fake Data policy:
+ * - Real arrays start completely empty: []
+ * - When user submits forms, client validation is performed and items are placed in volatile session memory
+ * - Returns persisted: false and an honest warning message stating backend persistence is unavailable.
+ */
+export class ClientSessionDataProvider implements IDataProvider {
+  public readonly isBackendConnected = false;
+
+  private transactions: Transaction[] = [];
+  private deletedTransactions: Transaction[] = [];
+  private budgets: Budget[] = [];
+  private savingsGoals: SavingsGoal[] = [];
+  private categories: Category[] = [...INITIAL_STUDENT_CATEGORIES];
+
+  private userProfile: UserProfile = {
+    name: '',
+    email: '',
+    studentType: 'College Undergraduate',
+    institution: '',
+    rollNumber: '',
+    monthlyAllowancePaise: 0,
+    currency: 'INR',
+  };
+
+  async getTransactions(filters?: TransactionFilters): Promise<Transaction[]> {
+    let result = this.transactions.filter((t) => !t.deletedAt);
+
+    if (!filters) return result;
+
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.description?.toLowerCase().includes(q) ||
+          this.getCategoryName(t.categoryId).toLowerCase().includes(q)
+      );
+    }
+
+    if (filters.type && filters.type !== 'all') {
+      result = result.filter((t) => t.type === filters.type);
+    }
+
+    if (filters.categoryId) {
+      result = result.filter((t) => t.categoryId === filters.categoryId);
+    }
+
+    if (filters.startDate) {
+      result = result.filter((t) => t.date >= filters.startDate!);
+    }
+
+    if (filters.endDate) {
+      result = result.filter((t) => t.date <= filters.endDate!);
+    }
+
+    if (filters.minAmountPaise !== undefined) {
+      result = result.filter((t) => t.amountPaise >= filters.minAmountPaise!);
+    }
+
+    if (filters.maxAmountPaise !== undefined) {
+      result = result.filter((t) => t.amountPaise <= filters.maxAmountPaise!);
+    }
+
+    return result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  async createTransaction(data: Omit<Transaction, 'id' | 'createdAt'>) {
+    const newTransaction: Transaction = {
+      ...data,
+      id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+    };
+    this.transactions.unshift(newTransaction);
+    return {
+      success: true,
+      persisted: false,
+      item: newTransaction,
+      warningMessage:
+        'Frontend Preview: Form validated. Transaction is active in this session only; database persistence is unavailable until a backend is connected.',
+    };
+  }
+
+  async deleteTransaction(id: string): Promise<boolean> {
+    const tx = this.transactions.find((t) => t.id === id);
+    if (!tx) return false;
+    tx.deletedAt = new Date().toISOString();
+    this.deletedTransactions.unshift(tx);
+    this.transactions = this.transactions.filter((t) => t.id !== id);
+    return true;
+  }
+
+  async restoreTransaction(id: string): Promise<boolean> {
+    const tx = this.deletedTransactions.find((t) => t.id === id);
+    if (!tx) return false;
+    tx.deletedAt = null;
+    this.transactions.unshift(tx);
+    this.deletedTransactions = this.deletedTransactions.filter((t) => t.id !== id);
+    return true;
+  }
+
+  async permanentlyDeleteTransaction(id: string): Promise<boolean> {
+    this.deletedTransactions = this.deletedTransactions.filter((t) => t.id !== id);
+    return true;
+  }
+
+  async emptyTrash(): Promise<number> {
+    const count = this.deletedTransactions.length;
+    this.deletedTransactions = [];
+    return count;
+  }
+
+  async getRecentlyDeleted(): Promise<Transaction[]> {
+    return [...this.deletedTransactions];
+  }
+
+  async getBudgets(): Promise<Budget[]> {
+    return [...this.budgets];
+  }
+
+  async createBudget(data: Omit<Budget, 'id' | 'createdAt'>) {
+    const existing = this.budgets.findIndex(
+      (b) => b.categoryId === data.categoryId && b.period === data.period
+    );
+    const newBudget: Budget = {
+      ...data,
+      id: `bg_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    if (existing >= 0) {
+      this.budgets[existing] = newBudget;
+    } else {
+      this.budgets.push(newBudget);
+    }
+    return {
+      success: true,
+      persisted: false,
+      item: newBudget,
+      warningMessage:
+        'Frontend Preview: Budget threshold configured in local session. Permanent cloud sync requires backend integration.',
+    };
+  }
+
+  async deleteBudget(id: string): Promise<boolean> {
+    this.budgets = this.budgets.filter((b) => b.id !== id);
+    return true;
+  }
+
+  async getSavingsGoals(): Promise<SavingsGoal[]> {
+    return [...this.savingsGoals];
+  }
+
+  async createSavingsGoal(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'allocations' | 'currentAmountPaise'>) {
+    const newGoal: SavingsGoal = {
+      ...data,
+      id: `sg_${Date.now()}`,
+      currentAmountPaise: 0,
+      allocations: [],
+      createdAt: new Date().toISOString(),
+    };
+    this.savingsGoals.push(newGoal);
+    return {
+      success: true,
+      persisted: false,
+      item: newGoal,
+      warningMessage:
+        'Frontend Preview: Savings goal created in memory. Connect backend persistence for multi-device sync.',
+    };
+  }
+
+  async addSavingsAllocation(
+    goalId: string,
+    amountPaise: number,
+    type: 'deposit' | 'withdrawal',
+    note?: string
+  ) {
+    const goal = this.savingsGoals.find((g) => g.id === goalId);
+    if (!goal) return { success: false, persisted: false, warningMessage: 'Goal not found' };
+
+    const allocation = {
+      id: `alloc_${Date.now()}`,
+      amountPaise,
+      date: new Date().toISOString().split('T')[0],
+      type,
+      note,
+    };
+
+    if (type === 'deposit') {
+      goal.currentAmountPaise += amountPaise;
+    } else {
+      goal.currentAmountPaise = Math.max(0, goal.currentAmountPaise - amountPaise);
+    }
+    goal.allocations.unshift(allocation);
+
+    return {
+      success: true,
+      persisted: false,
+      warningMessage: `Allocation recorded in session. Note: Savings allocations are dedicated student funds, not counted as ordinary expenses.`,
+    };
+  }
+
+  async getCategories(): Promise<Category[]> {
+    return [...this.categories];
+  }
+
+  async addCustomCategory(data: Omit<Category, 'id' | 'isCustom'>): Promise<Category> {
+    const newCat: Category = {
+      ...data,
+      id: `cust_${Date.now()}`,
+      isCustom: true,
+    };
+    this.categories.push(newCat);
+    return newCat;
+  }
+
+  async getUserProfile(): Promise<UserProfile> {
+    return { ...this.userProfile };
+  }
+
+  async updateUserProfile(data: Partial<UserProfile>): Promise<UserProfile> {
+    this.userProfile = { ...this.userProfile, ...data };
+    return { ...this.userProfile };
+  }
+
+  private getCategoryName(categoryId: string): string {
+    return this.categories.find((c) => c.id === categoryId)?.name || 'General';
+  }
+}
+
+// Global singleton instance for the applet session
+export const dataProvider: IDataProvider = new ClientSessionDataProvider();

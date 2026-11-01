@@ -1,0 +1,6 @@
+{
+  "name": "Expence Tracker — For Students",
+  "description": "A minimal, Apple-inspired financial management SaaS frontend for students with precision INR currency handling, budgeting, savings goals, and zero fake data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
