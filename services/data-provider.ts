@@ -63,6 +63,8 @@ export interface IDataProvider {
   // Categories
   getCategories(): Promise<Category[]>;
   addCustomCategory(data: Omit<Category, 'id' | 'isCustom'>): Promise<Category>;
+  updateCategory(id: string, data: Partial<Omit<Category, 'id'>>): Promise<Category>;
+  deleteCategory(id: string): Promise<boolean>;
 
   // Profile & Settings
   getUserProfile(): Promise<UserProfile>;
@@ -271,18 +273,87 @@ export class ClientSessionDataProvider implements IDataProvider {
     };
   }
 
+  private saveCategoriesToStorage(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('expence_tracker_user_categories_v3', JSON.stringify(this.categories));
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   async getCategories(): Promise<Category[]> {
+    if (typeof window !== 'undefined' && this.categories.length === 0) {
+      try {
+        const stored = localStorage.getItem('expence_tracker_user_categories_v3');
+        if (stored) {
+          this.categories = JSON.parse(stored);
+        }
+      } catch {
+        // ignore
+      }
+    }
     return [...this.categories];
   }
 
   async addCustomCategory(data: Omit<Category, 'id' | 'isCustom'>): Promise<Category> {
+    const trimmedName = data.name.trim();
+    // Prevent duplicate category names within the same transaction type (case-insensitive)
+    const duplicate = this.categories.some(
+      (c) =>
+        c.name.trim().toLowerCase() === trimmedName.toLowerCase() &&
+        (c.type === data.type || c.type === 'both' || (data.type as string) === 'both')
+    );
+    if (duplicate) {
+      throw new Error(`A ${data.type} category named "${trimmedName}" already exists.`);
+    }
+
     const newCat: Category = {
       ...data,
-      id: `cust_${Date.now()}`,
+      name: trimmedName,
+      id: `cust_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       isCustom: true,
     };
     this.categories.push(newCat);
+    this.saveCategoriesToStorage();
     return newCat;
+  }
+
+  async updateCategory(id: string, data: Partial<Omit<Category, 'id'>>): Promise<Category> {
+    const index = this.categories.findIndex((c) => c.id === id);
+    if (index === -1) {
+      throw new Error('Category not found');
+    }
+    const current = this.categories[index];
+    const newName = data.name !== undefined ? data.name.trim() : current.name;
+    const newType = data.type !== undefined ? data.type : current.type;
+
+    // Check duplicate if name or type changed
+    const duplicate = this.categories.some(
+      (c) =>
+        c.id !== id &&
+        c.name.trim().toLowerCase() === newName.toLowerCase() &&
+        (c.type === newType || c.type === 'both' || (newType as string) === 'both')
+    );
+    if (duplicate) {
+      throw new Error(`A ${newType} category named "${newName}" already exists.`);
+    }
+
+    const updatedCat: Category = {
+      ...current,
+      ...data,
+      name: newName,
+    };
+    this.categories[index] = updatedCat;
+    this.saveCategoriesToStorage();
+    return updatedCat;
+  }
+
+  async deleteCategory(id: string): Promise<boolean> {
+    this.categories = this.categories.filter((c) => c.id !== id);
+    this.saveCategoriesToStorage();
+    return true;
   }
 
   async getUserProfile(): Promise<UserProfile> {

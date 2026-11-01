@@ -126,7 +126,7 @@ export function CircularExpenseChart({
     if (typeof window === 'undefined') return 0;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 0;
   });
-  const [viewGrouping, setViewGrouping] = useState<'canonical' | 'ledger'>('canonical');
+  const [viewGrouping, setViewGrouping] = useState<'canonical' | 'ledger'>('ledger');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -337,7 +337,7 @@ export function CircularExpenseChart({
   return (
     <div
       ref={containerRef}
-      className="p-5 md:p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs transition-all"
+      className="p-5 md:p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626]"
     >
       {/* Header with Title, Grouping Selector, and Replay Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-100 dark:border-[#262626]">
@@ -355,12 +355,12 @@ export function CircularExpenseChart({
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {/* View grouping toggle: Canonical 8 vs Detailed */}
-          <div className="flex items-center gap-1 p-0.5 bg-slate-100 dark:bg-[#111111] rounded-xl border border-slate-200/60 dark:border-[#262626]">
+          <div className="flex items-center gap-1 p-0.5 bg-slate-100 dark:bg-[#141414] rounded-xl border border-slate-200/60 dark:border-[#262626]">
             <button
               onClick={() => setViewGrouping('canonical')}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors duration-150 ${
                 viewGrouping === 'canonical'
-                  ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white shadow-xs'
+                  ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white'
                   : 'text-slate-500 dark:text-[#A3A3A3] hover:text-slate-800 dark:hover:text-white'
               }`}
             >
@@ -368,9 +368,9 @@ export function CircularExpenseChart({
             </button>
             <button
               onClick={() => setViewGrouping('ledger')}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors duration-150 ${
                 viewGrouping === 'ledger'
-                  ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white shadow-xs'
+                  ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white'
                   : 'text-slate-500 dark:text-[#A3A3A3] hover:text-slate-800 dark:hover:text-white'
               }`}
             >
@@ -381,7 +381,7 @@ export function CircularExpenseChart({
           {/* Replay animation button */}
           <button
             onClick={startDrawingAnimation}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#111111] transition-colors border border-slate-200/60 dark:border-[#262626]"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150 border border-slate-200/60 dark:border-[#262626]"
             title="Replay drawing animation"
             aria-label="Replay drawing animation"
           >
@@ -514,15 +514,15 @@ export function CircularExpenseChart({
                     onClick={() =>
                       setActiveCategory(isSelected ? null : item)
                     }
-                    className={`group p-3 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-3 rounded-xl transition-colors duration-150 cursor-pointer ${
                       isSelected
-                        ? 'bg-slate-100/90 dark:bg-[#171717] border-slate-300 dark:border-[#333333] shadow-xs'
-                        : 'bg-slate-50/60 dark:bg-[#111111]/40 border-slate-100 dark:border-[#262626] hover:bg-slate-100/60 dark:hover:bg-[#141414]'
+                        ? 'bg-slate-100 dark:bg-[#141414] ring-1 ring-slate-300 dark:ring-[#333333]'
+                        : 'hover:bg-slate-50 dark:hover:bg-[#141414]/70'
                     }`}
                     style={{
                       opacity: isActivated ? 1 : 0,
-                      transform: isActivated ? 'translateY(0)' : 'translateY(10px)',
-                      transition: `opacity 400ms ease, transform 400ms ease`,
+                      transform: isActivated ? 'translateY(0)' : 'translateY(8px)',
+                      transition: `opacity 300ms ease, transform 300ms ease, background-color 150ms ease`,
                       transitionDelay: `${delayMs}ms`,
                     }}
                   >
@@ -530,7 +530,7 @@ export function CircularExpenseChart({
                       {/* Left: Swatch + Category name + Transaction count */}
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                           style={{
                             backgroundColor: `${item.color}20`,
                             color: item.color,
@@ -546,7 +546,7 @@ export function CircularExpenseChart({
                           <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                             {item.name}
                           </div>
-                          <div className="text-[10px] text-slate-400 dark:text-[#A3A3A3]">
+                          <div className="text-xs text-slate-500 dark:text-[#A3A3A3]">
                             {item.transactionCount}{' '}
                             {item.transactionCount === 1 ? 'transaction' : 'transactions'}
                           </div>
@@ -559,7 +559,7 @@ export function CircularExpenseChart({
                           {formatINR(item.amountPaise)}
                         </div>
                         <div
-                          className="text-[11px] font-semibold tabular-nums mt-0.5"
+                          className="text-xs font-semibold tabular-nums mt-0.5"
                           style={{ color: item.color }}
                         >
                           {item.percentage.toFixed(1)}%
@@ -568,7 +568,7 @@ export function CircularExpenseChart({
                     </div>
 
                     {/* Proportional Progress Bar below row */}
-                    <div className="mt-2 w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-[#1a1a1a] overflow-hidden">
+                    <div className="mt-2 w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-[#141414] overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500 ease-out"
                         style={{
@@ -606,7 +606,7 @@ export function CircularExpenseChart({
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-[#737373]">
               <span className="text-lg font-bold text-slate-900 dark:text-white">₹0</span>
-              <span className="text-[10px] uppercase font-semibold tracking-wider">No Spending</span>
+              <span className="text-xs uppercase font-semibold tracking-wider">No Spending</span>
             </div>
           </div>
 
@@ -619,7 +619,7 @@ export function CircularExpenseChart({
 
           <button
             onClick={openAddTransaction}
-            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-slate-200 rounded-xl transition-colors shadow-xs"
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-slate-200 rounded-xl transition-colors duration-150"
           >
             <Plus className="w-3.5 h-3.5" /> Record Expense
           </button>

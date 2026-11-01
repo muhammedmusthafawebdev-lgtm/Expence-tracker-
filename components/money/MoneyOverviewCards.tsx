@@ -10,7 +10,6 @@ import {
   PiggyBank,
   TrendingUp,
   TrendingDown,
-  ShieldCheck,
 } from 'lucide-react';
 
 interface MoneyOverviewCardsProps {
@@ -48,8 +47,8 @@ export function MoneyOverviewCards({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* 1. Total Balance */}
-      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs relative overflow-hidden group hover:border-slate-300 dark:hover:border-[#383838] transition-all">
+      {/* 1. Total Balance - Hero Metric with Primary Visual Priority */}
+      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] hover:border-slate-300 dark:hover:border-[#383838] transition-colors duration-150">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500 dark:text-[#A3A3A3] uppercase tracking-wider">
             Total Balance
@@ -61,7 +60,7 @@ export function MoneyOverviewCards({
 
         <div className="mt-3">
           <div
-            className={`text-2xl font-bold tracking-tight tabular-nums ${
+            className={`text-3xl font-extrabold tracking-tight tabular-nums ${
               isNetPositive
                 ? 'text-slate-900 dark:text-white'
                 : 'text-rose-600 dark:text-rose-400'
@@ -69,7 +68,7 @@ export function MoneyOverviewCards({
           >
             {formatINR(netBalance)}
           </div>
-          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#A3A3A3]">
             {isNetPositive ? (
               <TrendingUp className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             ) : (
@@ -81,7 +80,7 @@ export function MoneyOverviewCards({
       </div>
 
       {/* 2. Total Income */}
-      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs relative overflow-hidden group hover:border-slate-300 dark:hover:border-[#383838] transition-all">
+      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] hover:border-slate-300 dark:hover:border-[#383838] transition-colors duration-150">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500 dark:text-[#A3A3A3] uppercase tracking-wider">
             Total Income
@@ -95,14 +94,14 @@ export function MoneyOverviewCards({
           <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400 tabular-nums">
             {formatINR(income)}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+          <div className="mt-1 text-xs text-slate-500 dark:text-[#A3A3A3]">
             Incoming funds &amp; earnings
           </div>
         </div>
       </div>
 
       {/* 3. Total Expenses */}
-      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs relative overflow-hidden group hover:border-slate-300 dark:hover:border-[#383838] transition-all">
+      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] hover:border-slate-300 dark:hover:border-[#383838] transition-colors duration-150">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500 dark:text-[#A3A3A3] uppercase tracking-wider">
             Total Expenses
@@ -116,14 +115,14 @@ export function MoneyOverviewCards({
           <div className="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400 tabular-nums">
             {formatINR(expenses)}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 dark:text-[#A3A3A3]">
-            Total recorded outgoing spending
+          <div className="mt-1 text-xs text-slate-500 dark:text-[#A3A3A3]">
+            Total recorded spending
           </div>
         </div>
       </div>
 
       {/* 4. Remaining Balance */}
-      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs relative overflow-hidden group hover:border-slate-300 dark:hover:border-[#383838] transition-all">
+      <div className="p-5 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] hover:border-slate-300 dark:hover:border-[#383838] transition-colors duration-150">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500 dark:text-[#A3A3A3] uppercase tracking-wider">
             Remaining Balance
@@ -137,9 +136,9 @@ export function MoneyOverviewCards({
           <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums">
             {formatINR(availableBalance)}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+          <div className="mt-1 text-xs text-slate-500 dark:text-[#A3A3A3]">
             {savingsAllocated > 0
-              ? `${formatINR(savingsAllocated)} reserved in ${savingsGoals.length} savings goals`
+              ? `${formatINR(savingsAllocated)} in ${savingsGoals.length} savings goals`
               : 'Free unallocated student funds'}
           </div>
         </div>

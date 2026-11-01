@@ -15,6 +15,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Tag,
 } from 'lucide-react';
 import { AppScreen } from '@/types';
 
@@ -38,6 +39,7 @@ export function Sidebar() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'money', label: 'Money Overview', icon: CircleDollarSign },
     { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight },
+    { id: 'categories', label: 'Categories', icon: Tag },
     { id: 'budget', label: 'Budgets', icon: PieChart },
     { id: 'savings', label: 'Savings', icon: PiggyBank },
     { id: 'reports', label: 'Reports', icon: FileBarChart },
@@ -60,7 +62,7 @@ export function Sidebar() {
         <button
           onClick={toggleSidebar}
           aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#111111] transition-colors"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
         >
           {isSidebarCollapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -74,7 +76,7 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         <div>
           {!isSidebarCollapsed && (
-            <div className="px-3 mb-2 text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-[#A3A3A3]">
+            <div className="px-3 mb-2 text-xs uppercase font-bold tracking-wider text-slate-400 dark:text-[#A3A3A3]">
               Finance
             </div>
           )}
@@ -87,10 +89,10 @@ export function Sidebar() {
                   key={item.id}
                   onClick={() => setCurrentScreen(item.id)}
                   title={isSidebarCollapsed ? item.label : undefined}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors duration-150 ${
                     isActive
-                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-semibold shadow-xs'
-                      : 'text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#111111] hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-semibold'
+                      : 'text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon
@@ -110,7 +112,7 @@ export function Sidebar() {
         {/* Utility / Trash Item */}
         <div>
           {!isSidebarCollapsed && (
-            <div className="px-3 mb-2 text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-[#A3A3A3]">
+            <div className="px-3 mb-2 text-xs uppercase font-bold tracking-wider text-slate-400 dark:text-[#A3A3A3]">
               Trash &amp; Storage
             </div>
           )}
@@ -118,16 +120,16 @@ export function Sidebar() {
             <button
               onClick={() => setCurrentScreen('recently-deleted')}
               title={isSidebarCollapsed ? 'Recently Deleted' : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-colors duration-150 ${
                 currentScreen === 'recently-deleted'
                   ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-semibold'
-                  : 'text-slate-500 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#111111] hover:text-slate-900 dark:hover:text-white'
+                  : 'text-slate-500 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414] hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Trash2 className="w-4 h-4 shrink-0" />
               {!isSidebarCollapsed && <span className="truncate">Recently Deleted</span>}
               {!isSidebarCollapsed && deletedCount > 0 ? (
-                <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-[#111111] text-slate-600 dark:text-[#A3A3A3]">
+                <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-[#141414] text-slate-600 dark:text-[#A3A3A3]">
                   {deletedCount}
                 </span>
               ) : null}
@@ -141,10 +143,10 @@ export function Sidebar() {
         <button
           onClick={() => setCurrentScreen('profile')}
           title={isSidebarCollapsed ? 'Profile' : undefined}
-          className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-colors ${
+          className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-colors duration-150 ${
             currentScreen === 'profile'
-              ? 'bg-slate-100 dark:bg-[#111111] ring-1 ring-slate-200 dark:ring-[#262626]'
-              : 'hover:bg-slate-50 dark:hover:bg-[#111111]'
+              ? 'bg-slate-100 dark:bg-[#141414] ring-1 ring-slate-200 dark:ring-[#262626]'
+              : 'hover:bg-slate-50 dark:hover:bg-[#141414]'
           }`}
         >
           <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs shrink-0">
@@ -155,7 +157,7 @@ export function Sidebar() {
               <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                 {userProfile.name || 'Student Account'}
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-[#A3A3A3] truncate">
+              <div className="text-xs text-slate-500 dark:text-[#A3A3A3] truncate">
                 {userProfile.studentType || 'College Undergraduate'}
               </div>
             </div>

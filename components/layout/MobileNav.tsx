@@ -14,6 +14,7 @@ import {
   Settings,
   User,
   Trash2,
+  Tag,
 } from 'lucide-react';
 import { AppScreen } from '@/types';
 
@@ -37,6 +38,7 @@ export function MobileNav() {
     badge?: number;
     desc: string;
   }[] = [
+    { id: 'categories', label: 'Categories', icon: Tag, desc: 'Manage expense & income categories' },
     {
       id: 'money',
       label: 'Money Dashboard',
@@ -74,14 +76,14 @@ export function MobileNav() {
             <button
               key={item.id}
               onClick={() => handleSelectScreen(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-colors duration-150 ${
                 isActive
                   ? 'text-blue-600 dark:text-blue-400 font-semibold'
                   : 'text-slate-500 dark:text-[#A3A3A3] hover:text-slate-800 dark:hover:text-white'
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <span className="text-xs mt-0.5 tracking-tight">{item.label}</span>
             </button>
           );
         })}
@@ -89,14 +91,14 @@ export function MobileNav() {
         {/* More Button */}
         <button
           onClick={() => setIsMoreOpen(true)}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all relative ${
+          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-colors duration-150 relative ${
             isMoreOpen || moreItems.some((m) => m.id === currentScreen)
               ? 'text-blue-600 dark:text-blue-400 font-semibold'
               : 'text-slate-500 dark:text-[#A3A3A3]'
           }`}
         >
           <Menu className="w-5 h-5" />
-          <span className="text-[10px] mt-0.5 tracking-tight">More</span>
+          <span className="text-xs mt-0.5 tracking-tight">More</span>
         </button>
       </nav>
 
@@ -109,7 +111,7 @@ export function MobileNav() {
         >
           <div className="absolute inset-0" onClick={() => setIsMoreOpen(false)} />
 
-          <div className="relative bg-white dark:bg-[#111111] rounded-t-3xl border-t border-slate-200 dark:border-[#262626] p-6 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
+          <div className="relative bg-white dark:bg-[#0A0A0A] rounded-t-3xl border-t border-slate-200 dark:border-[#262626] p-6 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#262626]">
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                 More Features
@@ -130,12 +132,12 @@ export function MobileNav() {
                   <button
                     key={item.id}
                     onClick={() => handleSelectScreen(item.id)}
-                    className={`flex items-center justify-between py-3.5 text-left transition-colors ${
+                    className={`flex items-center justify-between py-3.5 text-left transition-colors duration-150 ${
                       isActive ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-slate-100 dark:bg-[#0A0A0A] text-slate-600 dark:text-[#A3A3A3] border border-transparent dark:border-[#262626]">
+                      <div className="p-2 rounded-xl bg-slate-100 dark:bg-[#141414] text-slate-600 dark:text-[#A3A3A3] border border-transparent dark:border-[#262626]">
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { DashboardView } from '@/components/views/DashboardView';
 import { MoneyDashboardView } from '@/components/views/MoneyDashboardView';
 import { TransactionsView } from '@/components/views/TransactionsView';
+import { CategoriesView } from '@/components/views/CategoriesView';
 import { BudgetView } from '@/components/views/BudgetView';
 import { SavingsView } from '@/components/views/SavingsView';
 import { ReportsView } from '@/components/views/ReportsView';
@@ -24,6 +25,8 @@ export function ScreenRouter() {
         return <MoneyDashboardView />;
       case 'transactions':
         return <TransactionsView />;
+      case 'categories':
+        return <CategoriesView />;
       case 'budget':
         return <BudgetView />;
       case 'savings':

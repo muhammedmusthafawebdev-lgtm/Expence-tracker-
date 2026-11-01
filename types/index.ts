@@ -22,7 +22,7 @@ export interface Category {
   type: TransactionType | 'both';
   icon: string;
   color: string;
-  studentGroup: StudentAudience;
+  studentGroup?: StudentAudience;
   isCustom?: boolean;
   groupName?: string;
 }
@@ -68,13 +68,24 @@ export interface UserProfile {
 }
 
 export type DashboardWidgetId =
+  | 'overview'
+  | 'moneyAnalytics'
+  | 'cashFlow'
+  | 'budget'
+  | 'savings'
+  | 'recentTransactions'
+  | 'billsRecurring'
+  | 'financialHealth'
+  | 'netWorth'
+  | 'debtEmi'
+  | 'reportsSummary'
+  // Legacy aliases for backwards compatibility with session storage
   | 'moneyDashboard'
   | 'balanceSummary'
   | 'incomeExpenseChart'
   | 'categorySpendingChart'
   | 'budgetOverview'
-  | 'savingsProgress'
-  | 'recentTransactions';
+  | 'savingsProgress';
 
 export interface DashboardWidgetItem {
   id: DashboardWidgetId;
@@ -85,13 +96,18 @@ export interface DashboardWidgetItem {
 }
 
 export interface DashboardWidgetConfig {
-  moneyDashboard: boolean;
-  balanceSummary: boolean;
-  incomeExpenseChart: boolean;
-  categorySpendingChart: boolean;
-  budgetOverview: boolean;
-  savingsProgress: boolean;
-  recentTransactions: boolean;
+  overview?: boolean;
+  moneyAnalytics?: boolean;
+  cashFlow?: boolean;
+  budget?: boolean;
+  savings?: boolean;
+  recentTransactions?: boolean;
+  billsRecurring?: boolean;
+  financialHealth?: boolean;
+  netWorth?: boolean;
+  debtEmi?: boolean;
+  reportsSummary?: boolean;
+  [key: string]: boolean | undefined;
 }
 
 // Retained views: dashboard, money, transactions, budget, savings, reports, profile, settings, recently-deleted
@@ -99,6 +115,7 @@ export type AppScreen =
   | 'dashboard'
   | 'money'
   | 'transactions'
+  | 'categories'
   | 'budget'
   | 'savings'
   | 'reports'

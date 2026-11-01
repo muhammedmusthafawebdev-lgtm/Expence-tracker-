@@ -65,7 +65,7 @@ export function ProfileView() {
             setMonthlyAllowanceStr(paiseToRupees(userProfile.monthlyAllowancePaise).toString());
             setIsEditing(true);
           }}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 rounded-xl transition-all shadow-xs self-start sm:self-auto"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 rounded-xl transition-colors duration-150 self-start sm:self-auto"
         >
           <Edit2 className="w-3.5 h-3.5" />
           Edit Student Details
@@ -73,10 +73,10 @@ export function ProfileView() {
       </div>
 
       {/* Main Profile Card */}
-      <div className="p-6 md:p-8 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs space-y-8">
+      <div className="p-6 md:p-8 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] space-y-8">
         {/* Profile Avatar & Header Block */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-2xl shadow-md shrink-0">
+          <div className="w-20 h-20 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-2xl shrink-0">
             {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : <User className="w-10 h-10 stroke-[1.5]" />}
           </div>
 
@@ -166,7 +166,7 @@ export function ProfileView() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-md bg-white dark:bg-[#111111] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-2xl p-6">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-2xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#262626]">
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                 Update Student Profile

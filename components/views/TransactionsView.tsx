@@ -64,7 +64,7 @@ export function TransactionsView() {
 
         <button
           onClick={openAddTransaction}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-xs self-start sm:self-auto active:scale-95"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors duration-150 self-start sm:self-auto active:scale-95"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           Add Transaction
@@ -72,7 +72,7 @@ export function TransactionsView() {
       </div>
 
       {/* Simplified Filter Toolbar */}
-      <div className="p-3 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs">
+      <div className="p-3 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626]">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           {/* Search Input */}
           <div className="relative">
@@ -82,19 +82,19 @@ export function TransactionsView() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search description, category..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#000000] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
 
           {/* Type Segmented Control */}
-          <div className="flex p-0.5 bg-slate-100 dark:bg-[#000000] rounded-xl border border-slate-200/60 dark:border-[#262626]">
+          <div className="flex p-0.5 bg-slate-100 dark:bg-[#141414] rounded-xl border border-slate-200/60 dark:border-[#262626]">
             {(['all', 'expense', 'income'] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className={`flex-1 py-1 text-xs font-semibold rounded-lg capitalize transition-all ${
+                className={`flex-1 py-1 text-xs font-semibold rounded-lg capitalize transition-colors duration-150 ${
                   typeFilter === t
-                    ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white shadow-xs'
+                    ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white'
                     : 'text-slate-500 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -107,7 +107,7 @@ export function TransactionsView() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#000000] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -122,19 +122,19 @@ export function TransactionsView() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#000000] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
       </div>
 
       {/* Transaction List / Table */}
       {filtered.length > 0 ? (
-        <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] overflow-hidden">
           {/* Desktop Table: Compact Scannable Layout */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-[#262626] bg-slate-50/50 dark:bg-[#000000]/40 text-[11px] font-bold text-slate-500 dark:text-[#A3A3A3] uppercase tracking-wider">
+                <tr className="border-b border-slate-200 dark:border-[#262626] bg-slate-50/50 dark:bg-[#141414]/40 text-xs font-bold text-slate-500 dark:text-[#A3A3A3] uppercase tracking-wider">
                   <th className="py-2.5 px-4">Category</th>
                   <th className="py-2.5 px-4">Date</th>
                   <th className="py-2.5 px-4">Method</th>
@@ -150,7 +150,7 @@ export function TransactionsView() {
                   return (
                     <tr
                       key={tx.id}
-                      className="hover:bg-slate-50/60 dark:hover:bg-[#111111]/40 transition-colors h-10"
+                      className="hover:bg-slate-50/60 dark:hover:bg-[#141414]/60 transition-colors duration-150 h-10"
                     >
                       <td className="py-2 px-4">
                         <div className="flex items-center gap-2">
@@ -186,7 +186,7 @@ export function TransactionsView() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => openEditTransaction(tx)}
-                            className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-[#111111] transition-colors"
+                            className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
                             title="Edit Transaction"
                             aria-label="Edit"
                           >
@@ -194,7 +194,7 @@ export function TransactionsView() {
                           </button>
                           <button
                             onClick={() => deleteTransaction(tx.id)}
-                            className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-[#111111] transition-colors"
+                            className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
                             title="Move to Recently Deleted"
                             aria-label="Delete"
                           >
@@ -227,11 +227,11 @@ export function TransactionsView() {
                       <div className="text-xs font-semibold text-slate-900 dark:text-white">
                         {cat?.name || 'General'}
                       </div>
-                      <div className="text-[11px] text-slate-400 dark:text-[#A3A3A3] mt-0.5">
+                      <div className="text-xs text-slate-400 dark:text-[#A3A3A3] mt-0.5">
                         {tx.date} {tx.paymentMethod ? `· ${tx.paymentMethod}` : ''}
                       </div>
                       {tx.description && (
-                        <div className="text-[11px] text-slate-600 dark:text-[#A3A3A3] mt-0.5 line-clamp-1">
+                        <div className="text-xs text-slate-600 dark:text-[#A3A3A3] mt-0.5 line-clamp-1">
                           {tx.description}
                         </div>
                       )}
@@ -251,7 +251,7 @@ export function TransactionsView() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditTransaction(tx)}
-                        className="p-1 text-slate-400 hover:text-blue-600"
+                        className="p-1 text-slate-400 hover:text-blue-600 transition-colors duration-150"
                         title="Edit"
                         aria-label="Edit"
                       >
@@ -259,7 +259,7 @@ export function TransactionsView() {
                       </button>
                       <button
                         onClick={() => deleteTransaction(tx.id)}
-                        className="p-1 text-slate-400 hover:text-red-600"
+                        className="p-1 text-slate-400 hover:text-red-600 transition-colors duration-150"
                         title="Delete"
                         aria-label="Delete"
                       >

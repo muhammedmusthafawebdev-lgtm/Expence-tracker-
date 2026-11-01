@@ -70,7 +70,7 @@ export function SettingsView() {
       </div>
 
       {/* 01. Appearance Theme System */}
-      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs space-y-4">
+      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] space-y-4">
         <div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
             Appearance &amp; Theme
@@ -89,10 +89,10 @@ export function SettingsView() {
                 key={opt.id}
                 type="button"
                 onClick={() => setTheme(opt.id)}
-                className={`p-4 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                className={`p-4 rounded-xl border text-left flex flex-col justify-between transition-colors duration-150 ${
                   isSelected
                     ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-1 ring-blue-600'
-                    : 'border-slate-200 dark:border-[#262626] hover:bg-slate-50 dark:hover:bg-[#111111]'
+                    : 'border-slate-200 dark:border-[#262626] hover:bg-slate-50 dark:hover:bg-[#141414]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
@@ -100,7 +100,7 @@ export function SettingsView() {
                     className={`p-2 rounded-lg ${
                       isSelected
                         ? 'bg-blue-600 text-white'
-                        : 'bg-slate-100 dark:bg-[#111111] text-slate-600 dark:text-[#A3A3A3]'
+                        : 'bg-slate-100 dark:bg-[#141414] text-slate-600 dark:text-[#A3A3A3]'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -112,7 +112,7 @@ export function SettingsView() {
                   <div className="text-xs font-semibold text-slate-900 dark:text-white">
                     {opt.label}
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-[#A3A3A3] mt-0.5">
+                  <div className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-0.5">
                     {opt.desc}
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export function SettingsView() {
       </div>
 
       {/* 02. Currency Settings */}
-      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs flex items-center justify-between gap-4">
+      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] flex items-center justify-between gap-4">
         <div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
             Financial Currency Standard
@@ -133,7 +133,7 @@ export function SettingsView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#111111] border border-slate-200/60 dark:border-[#262626]">
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#141414] border border-slate-200/60 dark:border-[#262626]">
           <Coins className="w-4 h-4 text-emerald-600" />
           <span className="text-xs font-bold text-slate-900 dark:text-white">
             INR (₹) Indian Rupee
@@ -142,7 +142,7 @@ export function SettingsView() {
       </div>
 
       {/* 03. Notification Preferences */}
-      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs space-y-4">
+      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] space-y-4">
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-slate-500 dark:text-[#A3A3A3]" />
           <div>
@@ -161,7 +161,7 @@ export function SettingsView() {
               <div className="text-xs font-semibold text-slate-900 dark:text-white">
                 Budget Threshold Warning Alerts (75%, 90%, 100%)
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+              <div className="text-xs text-slate-500 dark:text-[#A3A3A3]">
                 Notify when category spending exceeds budget boundaries
               </div>
             </div>
@@ -170,12 +170,12 @@ export function SettingsView() {
               role="switch"
               aria-checked={budgetAlertsEnabled}
               onClick={() => setBudgetAlertsEnabled(!budgetAlertsEnabled)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ${
                 budgetAlertsEnabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-[#262626]'
               }`}
             >
               <span
-                className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 ${
                   budgetAlertsEnabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
@@ -187,7 +187,7 @@ export function SettingsView() {
               <div className="text-xs font-semibold text-slate-900 dark:text-white">
                 Savings Target Reminders
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+              <div className="text-xs text-slate-500 dark:text-[#A3A3A3]">
                 Remind before upcoming savings goal deadlines
               </div>
             </div>
@@ -196,12 +196,12 @@ export function SettingsView() {
               role="switch"
               aria-checked={savingsRemindersEnabled}
               onClick={() => setSavingsRemindersEnabled(!savingsRemindersEnabled)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ${
                 savingsRemindersEnabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-[#262626]'
               }`}
             >
               <span
-                className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150 ${
                   savingsRemindersEnabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
@@ -213,14 +213,14 @@ export function SettingsView() {
               <div className="text-xs font-semibold text-slate-900 dark:text-white">
                 Browser System Notifications
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+              <div className="text-xs text-slate-500 dark:text-[#A3A3A3]">
                 Current Permission: <span className="font-semibold uppercase">{notificationPermission}</span>
               </div>
             </div>
             <button
               type="button"
               onClick={requestBrowserNotification}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-white bg-slate-100 dark:bg-[#111111] hover:bg-slate-200 dark:hover:bg-[#262626] rounded-xl border border-slate-200/60 dark:border-[#262626] transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-white bg-slate-100 dark:bg-[#141414] hover:bg-slate-200 dark:hover:bg-[#262626] rounded-xl border border-slate-200/60 dark:border-[#262626] transition-colors duration-150"
             >
               Request Permission
             </button>
@@ -229,7 +229,7 @@ export function SettingsView() {
       </div>
 
       {/* 04. Dashboard Customization Direct Trigger */}
-      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs flex items-center justify-between gap-4">
+      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] flex items-center justify-between gap-4">
         <div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
             Dashboard Widget Customization
@@ -242,7 +242,7 @@ export function SettingsView() {
         <button
           type="button"
           onClick={() => setIsCustomizeModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-white dark:text-black rounded-xl hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors shadow-xs"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-white dark:text-black rounded-xl hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           Manage Widgets

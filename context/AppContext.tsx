@@ -90,6 +90,8 @@ interface AppContextType {
 
   // Categories
   addCustomCategory: (data: Omit<Category, 'id' | 'isCustom'>) => Promise<Category>;
+  updateCategory: (id: string, data: Partial<Omit<Category, 'id'>>) => Promise<Category>;
+  deleteCategory: (id: string) => Promise<boolean>;
 
   // Profile & Settings
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
@@ -106,53 +108,83 @@ interface AppContextType {
 }
 
 const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetItem[] = [
+  // CORE WIDGETS (Visible by default)
   {
-    id: 'moneyDashboard',
-    label: 'Money Overview & Spending Donut',
-    desc: 'Summary metrics & scroll-animated circular expense breakdown',
+    id: 'overview',
+    label: 'Overview',
+    desc: 'Total balance, income, expenses & available funds',
     visible: true,
     pinned: true,
   },
   {
-    id: 'balanceSummary',
-    label: 'Balance Overview',
-    desc: 'Available balance, period income, expenses, and allocated savings',
-    visible: true,
-    pinned: true,
-  },
-  {
-    id: 'incomeExpenseChart',
-    label: 'Cash Flow Comparison',
-    desc: 'Visual flow of money in and money out',
+    id: 'moneyAnalytics',
+    label: 'Money Analytics',
+    desc: 'Spending breakdown, category distribution & trends',
     visible: true,
     pinned: false,
   },
   {
-    id: 'categorySpendingChart',
-    label: 'Category Spending',
-    desc: 'Distribution of expenses across categories',
+    id: 'cashFlow',
+    label: 'Cash Flow',
+    desc: 'Money coming in vs money going out comparison',
     visible: true,
     pinned: false,
   },
   {
-    id: 'budgetOverview',
+    id: 'budget',
     label: 'Budget Watchlist',
-    desc: 'Threshold tracking against Monthly and Yearly limits',
+    desc: 'Budget limits, spending progress & alerts',
     visible: true,
     pinned: false,
   },
   {
-    id: 'savingsProgress',
+    id: 'savings',
     label: 'Savings Goals',
-    desc: 'Dedicated milestone funds progress',
+    desc: 'Dedicated milestone progress & accumulated funds',
     visible: true,
     pinned: false,
   },
   {
     id: 'recentTransactions',
     label: 'Recent Transactions',
-    desc: 'Latest ledger entries and credits/debits',
+    desc: 'Latest ledger activity & quick records',
     visible: true,
+    pinned: false,
+  },
+  // OPTIONAL WIDGETS (User-configurable via Customize Dashboard)
+  {
+    id: 'billsRecurring',
+    label: 'Bills & Recurring Payments',
+    desc: 'Subscriptions, rent, utility & payment commitments',
+    visible: false,
+    pinned: false,
+  },
+  {
+    id: 'financialHealth',
+    label: 'Financial Health',
+    desc: 'Savings rate, spending-to-income ratio & health score',
+    visible: false,
+    pinned: false,
+  },
+  {
+    id: 'netWorth',
+    label: 'Net Worth',
+    desc: 'Assets, dedicated reserves & net financial position',
+    visible: false,
+    pinned: false,
+  },
+  {
+    id: 'debtEmi',
+    label: 'Debt & EMI',
+    desc: 'Outstanding loans & installment commitments',
+    visible: false,
+    pinned: false,
+  },
+  {
+    id: 'reportsSummary',
+    label: 'Reports Summary',
+    desc: 'Executive period statement & daily spending rate',
+    visible: false,
     pinned: false,
   },
 ];
@@ -238,14 +270,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       // Load widget preferences if in localStorage
       try {
-        const savedWidgets = localStorage.getItem('expence_tracker_widgets_v2');
+        const savedWidgets = localStorage.getItem('expence_tracker_widgets_v4');
         if (savedWidgets) {
           const parsed = JSON.parse(savedWidgets) as DashboardWidgetItem[];
           if (Array.isArray(parsed) && parsed.length > 0) {
             // Merge with defaults to ensure all keys exist
             const merged = DEFAULT_DASHBOARD_WIDGETS.map((def) => {
               const found = parsed.find((p) => p.id === def.id);
-              return found ? { ...def, ...found } : def;
+              return found ? { ...def, visible: found.visible, pinned: found.pinned } : def;
             });
             // Re-order by saved order
             const ordered = [...merged].sort((a, b) => {
@@ -280,7 +312,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       newWidgets.splice(targetIndex, 0, moved);
 
       try {
-        localStorage.setItem('expence_tracker_widgets_v2', JSON.stringify(newWidgets));
+        localStorage.setItem('expence_tracker_widgets_v4', JSON.stringify(newWidgets));
       } catch {
         // Ignore
       }
@@ -292,7 +324,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setWidgets((prev) => {
       const updated = prev.map((w) => (w.id === id ? { ...w, pinned: !w.pinned } : w));
       try {
-        localStorage.setItem('expence_tracker_widgets_v2', JSON.stringify(updated));
+        localStorage.setItem('expence_tracker_widgets_v4', JSON.stringify(updated));
       } catch {
         // Ignore
       }
@@ -304,7 +336,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setWidgets((prev) => {
       const updated = prev.map((w) => (w.id === id ? { ...w, visible: !w.visible } : w));
       try {
-        localStorage.setItem('expence_tracker_widgets_v2', JSON.stringify(updated));
+        localStorage.setItem('expence_tracker_widgets_v4', JSON.stringify(updated));
       } catch {
         // Ignore
       }
@@ -315,7 +347,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const resetWidgetLayout = () => {
     setWidgets(DEFAULT_DASHBOARD_WIDGETS);
     try {
-      localStorage.setItem('expence_tracker_widgets_v2', JSON.stringify(DEFAULT_DASHBOARD_WIDGETS));
+      localStorage.setItem('expence_tracker_widgets_v4', JSON.stringify(DEFAULT_DASHBOARD_WIDGETS));
     } catch {
       // Ignore
     }
@@ -501,11 +533,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const updated = await dataProvider.getCategories();
     setCategories(updated);
     showNotice(
-      'Custom Category Created',
-      `Category "${newCat.name}" is now available in your transaction selector. Notice: Category customizations are active for this session only until backend persistence is connected.`,
+      'Category Created',
+      `Category "${newCat.name}" is now available.`,
       'info'
     );
     return newCat;
+  };
+
+  const updateCategory = async (id: string, data: Partial<Omit<Category, 'id'>>) => {
+    const updated = await dataProvider.updateCategory(id, data);
+    const refreshed = await dataProvider.getCategories();
+    setCategories(refreshed);
+    showNotice(
+      'Category Updated',
+      `Category "${updated.name}" has been updated.`,
+      'info'
+    );
+    return updated;
+  };
+
+  const deleteCategory = async (id: string) => {
+    await dataProvider.deleteCategory(id);
+    const refreshed = await dataProvider.getCategories();
+    setCategories(refreshed);
+    showNotice(
+      'Category Deleted',
+      'The category has been deleted.',
+      'info'
+    );
+    return true;
   };
 
   const updateProfile = async (profileData: Partial<UserProfile>) => {
@@ -568,6 +624,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         submitSavingsGoal,
         submitSavingsAllocation,
         addCustomCategory,
+        updateCategory,
+        deleteCategory,
         updateProfile,
         resetAllData,
         bannerNotice,

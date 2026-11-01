@@ -80,7 +80,7 @@ export function RecentlyDeletedView() {
 
       {/* List of deleted transactions */}
       {deletedTransactions.length > 0 ? (
-        <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] shadow-xs divide-y divide-slate-100 dark:divide-[#262626]">
+        <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] divide-y divide-slate-100 dark:divide-[#262626]">
           {deletedTransactions.map((tx) => {
             const cat = categories.find((c) => c.id === tx.categoryId);
             const isExpense = tx.type === 'expense';
@@ -88,7 +88,7 @@ export function RecentlyDeletedView() {
             return (
               <div
                 key={tx.id}
-                className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-50/50 dark:hover:bg-[#111111]/40 transition-colors"
+                className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 hover:bg-slate-50/50 dark:hover:bg-[#141414]/60 transition-colors duration-150"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -104,7 +104,7 @@ export function RecentlyDeletedView() {
                         ({isExpense ? 'Expense' : 'Income'})
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-400 dark:text-[#A3A3A3] mt-0.5">
+                    <div className="text-xs text-slate-400 dark:text-[#A3A3A3] mt-0.5">
                       Amount: {formatINR(tx.amountPaise)} · Date: {tx.date}{' '}
                       {tx.deletedAt ? `· Deleted on ${tx.deletedAt.split('T')[0]}` : ''}
                     </div>
@@ -114,14 +114,14 @@ export function RecentlyDeletedView() {
                 <div className="flex items-center gap-2 self-end sm:self-auto">
                   <button
                     onClick={() => restoreTransaction(tx.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-150"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     Restore
                   </button>
                   <button
                     onClick={() => setConfirmDeleteId(tx.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/60 rounded-xl transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/60 rounded-xl transition-colors duration-150"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Purge

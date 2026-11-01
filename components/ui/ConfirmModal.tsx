@@ -67,7 +67,7 @@ export function ConfirmModal({
     >
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-md bg-white dark:bg-[#111111] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-2xl p-6 overflow-hidden animate-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-2xl p-6 overflow-hidden animate-in zoom-in-95 duration-150">
         <div className="flex items-start gap-3.5 mb-3">
           <div
             className={`p-2 rounded-xl shrink-0 ${
@@ -90,7 +90,7 @@ export function ConfirmModal({
                 {title}
               </h3>
               {typeof itemCount === 'number' && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#0A0A0A] text-slate-700 dark:text-[#A3A3A3] border border-transparent dark:border-[#262626]">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#141414] text-slate-700 dark:text-[#A3A3A3] border border-transparent dark:border-[#262626]">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'}
                 </span>
               )}
@@ -103,7 +103,7 @@ export function ConfirmModal({
 
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#0A0A0A] transition-colors"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4" />
@@ -115,7 +115,7 @@ export function ConfirmModal({
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white transition-colors duration-150 disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -124,7 +124,7 @@ export function ConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={isPending}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-xs active:scale-95 disabled:opacity-50 ${confirmColors[variant]}`}
+            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-colors duration-150 active:scale-95 disabled:opacity-50 ${confirmColors[variant]}`}
           >
             {isPending ? 'Processing...' : confirmLabel}
           </button>
