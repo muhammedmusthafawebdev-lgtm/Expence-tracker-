@@ -370,5 +370,9 @@ export class ClientSessionDataProvider implements IDataProvider {
   }
 }
 
-// Global singleton instance for the applet session
+// Global frontend data provider singleton
+// Implements IDataProvider with zero fake data and in-memory session reactivity.
+// Prepared as a clear interface for the future Supabase backend tool to implement.
 export const dataProvider: IDataProvider = new ClientSessionDataProvider();
+
+

@@ -8,7 +8,7 @@ import {
   PieChart as PieIcon,
   X,
 } from 'lucide-react';
-import { formatINR, rupeesToPaise, getBudgetStatus } from '@/lib/calculations/financial';
+import { formatINR, rupeesToPaise, getBudgetStatus, calculateBudgetSpent } from '@/lib/calculations/financial';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BudgetPeriod } from '@/types';
@@ -121,10 +121,8 @@ export function BudgetView() {
           {filteredBudgets.map((bg) => {
             const cat = categories.find((c) => c.id === bg.categoryId);
 
-            // Compute real spend for this category
-            const spentPaise = transactions
-              .filter((t) => t.categoryId === bg.categoryId && t.type === 'expense' && !t.deletedAt)
-              .reduce((sum, t) => sum + t.amountPaise, 0);
+            // Strictly compute real spend for current period (monthly: current month only; yearly: current year only)
+            const spentPaise = calculateBudgetSpent(transactions, bg.categoryId, bg.period);
 
             const usagePct =
               bg.limitPaise > 0

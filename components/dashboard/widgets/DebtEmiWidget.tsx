@@ -12,20 +12,29 @@ interface DebtEmiWidgetProps {
 }
 
 export function DebtEmiWidget({ transactions, categories }: DebtEmiWidgetProps) {
-  // Detect EMI and loan entries
+  // Detect loan/EMI records strictly by explicit category designation
+  // Does NOT consider ordinary credit card purchases as debt
+  // Excludes deleted transactions and ensures zero double-counting
   const emiTransactions = useMemo(() => {
+    const seenIds = new Set<string>();
     return transactions.filter((t) => {
-      if (t.type !== 'expense' || t.deletedAt) return false;
+      if (t.type !== 'expense' || t.deletedAt || seenIds.has(t.id)) return false;
       const cat = categories.find((c) => c.id === t.categoryId);
-      const name = (cat?.name || '').toLowerCase();
-      const desc = (t.description || '').toLowerCase();
-      return (
-        name.includes('emi') ||
-        name.includes('loan') ||
-        desc.includes('emi') ||
-        desc.includes('loan') ||
-        t.paymentMethod === 'Credit Card'
-      );
+      const catName = (cat?.name || '').toLowerCase();
+      const groupName = (cat?.groupName || '').toLowerCase();
+
+      // Explicit loan/EMI category match only (never paymentMethod Credit Card)
+      const isEmiCategory =
+        catName.includes('emi') ||
+        catName.includes('loan') ||
+        groupName.includes('emi') ||
+        groupName.includes('loan');
+
+      if (isEmiCategory) {
+        seenIds.add(t.id);
+        return true;
+      }
+      return false;
     });
   }, [transactions, categories]);
 
@@ -40,15 +49,21 @@ export function DebtEmiWidget({ transactions, categories }: DebtEmiWidgetProps) 
         <div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-rose-500" />
-            Debt &amp; EMI Commitments
+            Loan &amp; EMI Commitments
           </h3>
           <p className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-0.5">
-            Credit cards, loan EMIs, and debt obligations
+            Dedicated loan installments and student EMI commitments
           </p>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 tabular-nums">
-          Total Tracked: {formatINR(totalEmiPaise)}
-        </span>
+        {totalEmiPaise > 0 ? (
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 tabular-nums">
+            Total Tracked: {formatINR(totalEmiPaise)}
+          </span>
+        ) : (
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+            Zero Debt
+          </span>
+        )}
       </div>
 
       {emiTransactions.length > 0 ? (

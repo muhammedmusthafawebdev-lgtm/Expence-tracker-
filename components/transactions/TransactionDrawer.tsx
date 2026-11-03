@@ -60,6 +60,10 @@ function TransactionDrawerContent({ mode, initialData }: TransactionDrawerConten
     return mode === 'edit' && initialData ? initialData.description || '' : '';
   });
 
+  const [isRecurring, setIsRecurring] = useState<boolean>(() => {
+    return mode === 'edit' && initialData ? Boolean(initialData.isRecurring) : false;
+  });
+
   const [categorySearch, setCategorySearch] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,6 +128,7 @@ function TransactionDrawerContent({ mode, initialData }: TransactionDrawerConten
         date,
         paymentMethod: (paymentMethod as PaymentMethod) || undefined,
         description: description.trim() || undefined,
+        isRecurring: type === 'expense' ? isRecurring : false,
       });
     } finally {
       setIsSubmitting(false);
@@ -444,6 +449,35 @@ function TransactionDrawerContent({ mode, initialData }: TransactionDrawerConten
                   </p>
                 )}
               </div>
+
+              {/* Explicit Recurring Commitment Designation */}
+              {type === 'expense' && (
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#141414] rounded-xl border border-slate-200/80 dark:border-[#262626]">
+                  <div>
+                    <div className="text-xs font-semibold text-slate-900 dark:text-white">
+                      Mark as Recurring Commitment
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-[#A3A3A3]">
+                      Designates this as a monthly recurring bill, subscription, or rent
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isRecurring}
+                    onClick={() => setIsRecurring(!isRecurring)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                      isRecurring ? 'bg-blue-600' : 'bg-slate-200 dark:bg-[#262626]'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-150 ${
+                        isRecurring ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
             </form>
 
             {/* Sticky Footer Action Buttons: Safe-area inset, never overlaps content */}

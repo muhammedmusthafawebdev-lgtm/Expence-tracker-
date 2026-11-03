@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import {
   FileText,
@@ -60,13 +60,26 @@ export function ReportsView() {
     window.print();
   };
 
-  const generatedDateStr = new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date());
+  const [generatedDateStr, setGeneratedDateStr] = useState<string>('');
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      try {
+        setGeneratedDateStr(
+          new Intl.DateTimeFormat('en-IN', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }).format(new Date())
+        );
+      } catch {
+        // Fallback
+      }
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   const periodLabelMap: Record<'this_month' | 'this_year' | 'all_time', string> = {
     this_month: 'This Month',

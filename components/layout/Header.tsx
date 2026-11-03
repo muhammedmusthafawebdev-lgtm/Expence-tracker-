@@ -14,9 +14,9 @@ import { AppScreen } from '@/types';
 
 export function Header() {
   const { currentScreen, openAddTransaction, setIsCustomizeModalOpen } = useApp();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, mounted } = useTheme();
 
-  const screenTitles: Record<AppScreen, { title: string; subtitle: string }> = {
+  const screenTitles: Partial<Record<AppScreen, { title: string; subtitle: string }>> = {
     dashboard: {
       title: 'Finance Dashboard',
       subtitle: 'Overview of income, expenses, and budget limits',
@@ -100,15 +100,16 @@ export function Header() {
         <button
           onClick={cycleTheme}
           className="p-2 rounded-xl text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150 border border-slate-200/60 dark:border-[#262626]"
-          title={`Current Theme: ${theme.toUpperCase()} (Click to toggle)`}
+          title={`Current Theme: ${(mounted ? theme : 'system').toUpperCase()} (Click to toggle)`}
           aria-label="Toggle theme mode"
+          suppressHydrationWarning
         >
-          {theme === 'dark' ? (
-            <Moon className="w-4 h-4 text-blue-400" />
-          ) : theme === 'light' ? (
-            <Sun className="w-4 h-4 text-amber-500" />
-          ) : (
+          {!mounted || theme === 'system' ? (
             <Laptop className="w-4 h-4 text-slate-400" />
+          ) : theme === 'dark' ? (
+            <Moon className="w-4 h-4 text-blue-400" />
+          ) : (
+            <Sun className="w-4 h-4 text-amber-500" />
           )}
         </button>
 

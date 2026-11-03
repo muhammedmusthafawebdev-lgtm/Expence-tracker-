@@ -12,6 +12,8 @@ export interface Transaction {
   description?: string;
   createdAt: string;
   deletedAt?: string | null;
+  isRecurring?: boolean; // Explicitly user-designated recurring commitment
+  debtType?: 'loan' | 'emi' | 'borrowed' | 'lent';
 }
 
 export type StudentAudience = 'college' | 'school' | 'hostel' | 'exam' | 'custom';
@@ -110,8 +112,15 @@ export interface DashboardWidgetConfig {
   [key: string]: boolean | undefined;
 }
 
-// Retained views: dashboard, money, transactions, budget, savings, reports, profile, settings, recently-deleted
+// Application screens including authenticated views and authentication flow screens
 export type AppScreen =
+  | 'welcome'
+  | 'login'
+  | 'signup'
+  | 'forgot-password'
+  | 'reset-password'
+  | 'magic-link'
+  | 'check-inbox'
   | 'dashboard'
   | 'money'
   | 'transactions'

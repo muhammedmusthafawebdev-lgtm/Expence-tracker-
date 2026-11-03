@@ -26,6 +26,7 @@ interface AppContextType {
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
+  reloadAppData: () => Promise<void>;
 
   // Data & Entities (Zero Fake Data Guarantee)
   transactions: Transaction[];
@@ -168,8 +169,8 @@ const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetItem[] = [
   },
   {
     id: 'netWorth',
-    label: 'Net Worth',
-    desc: 'Assets, dedicated reserves & net financial position',
+    label: 'Net Liquid Capital & Reserves (Cash + Goals)',
+    desc: 'Immediate cash liquidity and ring-fenced savings reserves',
     visible: false,
     pinned: false,
   },
@@ -192,7 +193,7 @@ const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetItem[] = [
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>('dashboard');
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('welcome');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // Core state: strict zero fake data defaults
@@ -210,6 +211,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     monthlyAllowancePaise: 0,
     currency: 'INR',
   });
+
+  // Reload data from data provider (e.g. after auth change or refresh)
+  const reloadAppData = async () => {
+    try {
+      const [txs, delTxs, cats, bgs, goals, profile] = await Promise.all([
+        dataProvider.getTransactions(),
+        dataProvider.getRecentlyDeleted(),
+        dataProvider.getCategories(),
+        dataProvider.getBudgets(),
+        dataProvider.getSavingsGoals(),
+        dataProvider.getUserProfile(),
+      ]);
+
+      setTransactions(txs);
+      setDeletedTransactions(delTxs);
+      setCategories(cats);
+      setBudgets(bgs);
+      setSavingsGoals(goals);
+      setUserProfile(profile);
+    } catch (err) {
+      console.error('Failed to reload app data:', err);
+    }
+  };
 
   // Dashboard widgets state
   const [widgets, setWidgets] = useState<DashboardWidgetItem[]>(DEFAULT_DASHBOARD_WIDGETS);
@@ -594,6 +618,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isSidebarCollapsed,
         setIsSidebarCollapsed,
         toggleSidebar,
+        reloadAppData,
         transactions,
         deletedTransactions,
         categories,

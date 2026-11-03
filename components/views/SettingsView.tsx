@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useSyncExternalStore } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import {
@@ -15,16 +15,19 @@ import {
 import { ThemeMode } from '@/types';
 
 export function SettingsView() {
-  const { theme, setTheme } = useTheme();
-  const { showNotice, setIsCustomizeModalOpen } = useApp();
+  const { theme, setTheme, mounted } = useTheme();
+  const { showNotice, setIsCustomizeModalOpen, setCurrentScreen } = useApp();
 
-  const browserNotificationPerm = useSyncExternalStore(
-    () => () => {},
-    () => (typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'),
-    () => 'default'
-  );
-  const [requestedPermission, setRequestedPermission] = useState<string | null>(null);
-  const notificationPermission = requestedPermission ?? browserNotificationPerm;
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setNotificationPermission(Notification.permission);
+      }
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   const [budgetAlertsEnabled, setBudgetAlertsEnabled] = useState(true);
   const [savingsRemindersEnabled, setSavingsRemindersEnabled] = useState(true);
@@ -33,7 +36,7 @@ export function SettingsView() {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       try {
         const perm = await Notification.requestPermission();
-        setRequestedPermission(perm);
+        setNotificationPermission(perm);
         showNotice(
           'Notification Permission',
           `Browser notifications status: ${perm.toUpperCase()}`,
@@ -83,12 +86,13 @@ export function SettingsView() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {themeOptions.map((opt) => {
             const Icon = opt.icon;
-            const isSelected = theme === opt.id;
+            const isSelected = (mounted ? theme : 'system') === opt.id;
             return (
               <button
                 key={opt.id}
                 type="button"
                 onClick={() => setTheme(opt.id)}
+                suppressHydrationWarning
                 className={`p-4 rounded-xl border text-left flex flex-col justify-between transition-colors duration-150 ${
                   isSelected
                     ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-1 ring-blue-600'
@@ -214,7 +218,7 @@ export function SettingsView() {
                 Browser System Notifications
               </div>
               <div className="text-xs text-slate-500 dark:text-[#A3A3A3]">
-                Current Permission: <span className="font-semibold uppercase">{notificationPermission}</span>
+                Current Permission: <span className="font-semibold uppercase" suppressHydrationWarning>{notificationPermission}</span>
               </div>
             </div>
             <button
@@ -246,6 +250,26 @@ export function SettingsView() {
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           Manage Widgets
+        </button>
+      </div>
+
+      {/* 05. Navigation & Welcome */}
+      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+            Welcome &amp; Authentication Flow
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-0.5">
+            Return to the landing page or test authentication views
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setCurrentScreen('welcome')}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-900 dark:text-white bg-slate-100 dark:bg-[#141414] hover:bg-slate-200 dark:hover:bg-[#262626] rounded-xl border border-slate-200/60 dark:border-[#262626] transition-colors duration-150"
+        >
+          <span>View Welcome Page</span>
         </button>
       </div>
     </div>

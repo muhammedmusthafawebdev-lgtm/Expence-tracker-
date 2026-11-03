@@ -61,17 +61,17 @@ export function MoneyAnalyticsWidget({
   return (
     <div className="p-5 md:p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626]">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
-        <div>
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            Money Analytics ({periodLabel})
+            <PieChart className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span className="truncate">Money Analytics ({periodLabel})</span>
           </h3>
-          <p className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-0.5 truncate">
             Spending distribution and category proportion
           </p>
         </div>
         {totalExpensePaise > 0 && (
-          <span className="text-xs font-semibold text-slate-900 dark:text-white tabular-nums">
+          <span className="text-xs font-semibold text-slate-900 dark:text-white tabular-nums shrink-0 self-start sm:self-auto">
             Total Spent: {formatINR(totalExpensePaise)}
           </span>
         )}
@@ -101,15 +101,15 @@ export function MoneyAnalyticsWidget({
                 key={item.id}
                 className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#141414] transition-colors"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div
                     className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                     style={{ backgroundColor: `${item.color}20`, color: item.color }}
                   >
                     <CategoryIcon name={item.icon} className="w-3.5 h-3.5" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-slate-900 dark:text-white truncate block">
                       {item.name}
                     </div>
                     <div className="text-[10px] text-slate-400 dark:text-[#737373]">
@@ -118,7 +118,7 @@ export function MoneyAnalyticsWidget({
                   </div>
                 </div>
 
-                <div className="text-right shrink-0">
+                <div className="text-right shrink-0 ml-3">
                   <div className="text-xs font-bold text-slate-900 dark:text-white tabular-nums">
                     {formatINR(item.amountPaise)}
                   </div>

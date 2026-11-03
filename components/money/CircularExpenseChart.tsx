@@ -118,18 +118,22 @@ export function CircularExpenseChart({
   }, []);
 
   const [activeCategory, setActiveCategory] = useState<CategorySpendingItem | null>(null);
-  const [isActivated, setIsActivated] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
-  const [animationProgress, setAnimationProgress] = useState<number>(() => {
-    if (typeof window === 'undefined') return 0;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 0;
-  });
+  const [isActivated, setIsActivated] = useState<boolean>(false);
+  const [animationProgress, setAnimationProgress] = useState<number>(0);
   const [viewGrouping, setViewGrouping] = useState<'canonical' | 'ledger'>('ledger');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setIsActivated(true);
+        setAnimationProgress(1);
+      }
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   // Filter active expenses
   const expenseTransactions = useMemo(() => {

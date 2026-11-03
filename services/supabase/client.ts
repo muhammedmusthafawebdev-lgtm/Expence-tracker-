@@ -1,13 +1,5 @@
-/**
- * Supabase Client Integration Boundary
- *
- * Prepared for future Supabase connection.
- * When you are ready to connect Supabase:
- * 1. Install @supabase/supabase-js:
- *    npm install @supabase/supabase-js
- * 2. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.
- * 3. Swap the active provider in services/data-provider.ts to SupabaseDataProvider.
- */
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Database } from './types';
 
 export interface SupabaseConfig {
   url: string;
@@ -18,13 +10,45 @@ export function getSupabaseConfig(): SupabaseConfig | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey || url.includes('your-project') || anonKey.includes('your-anon-key')) {
+  if (
+    !url ||
+    !anonKey ||
+    url.includes('your-project-id') ||
+    anonKey.includes('your-anon-public-key') ||
+    url.trim() === '' ||
+    anonKey.trim() === ''
+  ) {
     return null;
   }
 
-  return { url, anonKey };
+  return { url: url.trim(), anonKey: anonKey.trim() };
 }
 
 export const isSupabaseConfigured = (): boolean => {
   return getSupabaseConfig() !== null;
 };
+
+let supabaseInstance: SupabaseClient | null = null;
+
+/**
+ * Returns the singleton Supabase client instance or null if not configured.
+ */
+export function getSupabase(): SupabaseClient | null {
+  const config = getSupabaseConfig();
+  if (!config) {
+    return null;
+  }
+
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(config.url, config.anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      },
+    });
+  }
+
+  return supabaseInstance;
+}

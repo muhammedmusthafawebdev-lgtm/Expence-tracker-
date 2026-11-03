@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Budget, Transaction, Category, AppScreen } from '@/types';
-import { formatINR, getBudgetStatus } from '@/lib/calculations/financial';
+import { formatINR, getBudgetStatus, calculateBudgetSpent } from '@/lib/calculations/financial';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { PieChart as PieIcon, ArrowRight, Plus } from 'lucide-react';
 
@@ -43,9 +43,8 @@ export function BudgetWidget({
         <div className="space-y-3.5">
           {budgets.slice(0, 4).map((bg) => {
             const cat = categories.find((c) => c.id === bg.categoryId);
-            const spentPaise = transactions
-              .filter((t) => t.categoryId === bg.categoryId && t.type === 'expense' && !t.deletedAt)
-              .reduce((sum, t) => sum + t.amountPaise, 0);
+            // Strictly compute real spend for current period (monthly: current month only; yearly: current year only)
+            const spentPaise = calculateBudgetSpent(transactions, bg.categoryId, bg.period);
 
             const usagePct =
               bg.limitPaise > 0 ? Math.round((spentPaise / bg.limitPaise) * 100) : 0;

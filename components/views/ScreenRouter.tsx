@@ -3,6 +3,13 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { WelcomeView } from '@/components/auth/WelcomeView';
+import { LoginView } from '@/components/auth/LoginView';
+import { SignUpView } from '@/components/auth/SignUpView';
+import { ForgotPasswordView } from '@/components/auth/ForgotPasswordView';
+import { ResetPasswordView } from '@/components/auth/ResetPasswordView';
+import { MagicLinkView } from '@/components/auth/MagicLinkView';
+import { CheckInboxView } from '@/components/auth/CheckInboxView';
 import { DashboardView } from '@/components/views/DashboardView';
 import { MoneyDashboardView } from '@/components/views/MoneyDashboardView';
 import { TransactionsView } from '@/components/views/TransactionsView';
@@ -19,6 +26,20 @@ export function ScreenRouter() {
 
   const renderScreen = () => {
     switch (currentScreen) {
+      case 'welcome':
+        return <WelcomeView />;
+      case 'login':
+        return <LoginView />;
+      case 'signup':
+        return <SignUpView />;
+      case 'forgot-password':
+        return <ForgotPasswordView />;
+      case 'reset-password':
+        return <ResetPasswordView />;
+      case 'magic-link':
+        return <MagicLinkView />;
+      case 'check-inbox':
+        return <CheckInboxView />;
       case 'dashboard':
         return <DashboardView />;
       case 'money':
@@ -40,7 +61,7 @@ export function ScreenRouter() {
       case 'recently-deleted':
         return <RecentlyDeletedView />;
       default:
-        return <DashboardView />;
+        return <WelcomeView />;
     }
   };
 

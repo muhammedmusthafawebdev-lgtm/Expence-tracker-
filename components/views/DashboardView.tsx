@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Calendar, SlidersHorizontal, Plus } from 'lucide-react';
 import { DashboardWidgetId } from '@/types';
@@ -33,14 +33,25 @@ export function DashboardView() {
   // Period selector: This Month, This Year, All Time
   const [dateFilter, setDateFilter] = useState<'this_month' | 'this_year' | 'all_time'>('this_month');
 
-  // Format today's date cleanly
-  const todayFormatted = useMemo(() => {
-    return new Intl.DateTimeFormat('en-IN', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date());
+  // Format today's date cleanly (evaluated on client mount to eliminate SSR mismatch)
+  const [todayFormatted, setTodayFormatted] = useState<string>('');
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      try {
+        setTodayFormatted(
+          new Intl.DateTimeFormat('en-IN', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }).format(new Date())
+        );
+      } catch {
+        // Fallback
+      }
+    });
+    return () => cancelAnimationFrame(frameId);
   }, []);
 
   const currentMonthStr = useMemo(() => new Date().toISOString().substring(0, 7), []);
@@ -227,8 +238,8 @@ export function DashboardView() {
         </div>
 
         {/* Period Selector: This Month, This Year, All Time */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#141414] rounded-xl border border-slate-200/60 dark:border-[#262626]">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto max-w-full">
+          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#141414] rounded-xl border border-slate-200/60 dark:border-[#262626] max-w-full overflow-x-auto">
             {(
               [
                 { key: 'this_month', label: 'This Month' },
@@ -239,9 +250,9 @@ export function DashboardView() {
               <button
                 key={item.key}
                 onClick={() => setDateFilter(item.key)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors duration-150 ${
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors duration-150 whitespace-nowrap shrink-0 ${
                   dateFilter === item.key
-                    ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white'
+                    ? 'bg-white dark:bg-[#262626] text-slate-900 dark:text-white shadow-xs'
                     : 'text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -252,7 +263,7 @@ export function DashboardView() {
 
           <button
             onClick={() => setIsCustomizeModalOpen(true)}
-            className="p-2 rounded-xl text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150 border border-slate-200/60 dark:border-[#262626]"
+            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150 border border-slate-200/60 dark:border-[#262626] shrink-0"
             title="Customize Dashboard"
             aria-label="Customize dashboard widgets"
           >

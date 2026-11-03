@@ -88,14 +88,14 @@ export function QuickCustomizeModal() {
                 }`}
               >
                 {/* Left: Reorder arrows & Widget Name */}
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  {/* Up / Down Reorder Arrows */}
-                  <div className="flex items-center gap-0.5 shrink-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {/* Up / Down Reorder Arrows (Min 44x44px touch target) */}
+                  <div className="flex items-center shrink-0">
                     <button
                       type="button"
                       disabled={isFirst}
                       onClick={() => moveWidget(widget.id, 'up')}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-[#262626] disabled:opacity-20 disabled:hover:bg-transparent transition-colors duration-150"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#262626] disabled:opacity-20 disabled:hover:bg-transparent transition-colors duration-150 active:scale-95"
                       title="Move up"
                       aria-label={`Move ${widget.label} up`}
                     >
@@ -105,7 +105,7 @@ export function QuickCustomizeModal() {
                       type="button"
                       disabled={isLast}
                       onClick={() => moveWidget(widget.id, 'down')}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-[#262626] disabled:opacity-20 disabled:hover:bg-transparent transition-colors duration-150"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#262626] disabled:opacity-20 disabled:hover:bg-transparent transition-colors duration-150 active:scale-95"
                       title="Move down"
                       aria-label={`Move ${widget.label} down`}
                     >
@@ -114,7 +114,7 @@ export function QuickCustomizeModal() {
                   </div>
 
                   {/* Widget Title - Primary text, never truncated */}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 pl-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-semibold text-slate-900 dark:text-white leading-normal break-words">
                         {widget.label}
@@ -133,13 +133,13 @@ export function QuickCustomizeModal() {
                   </div>
                 </div>
 
-                {/* Right: Pin Toggle & Visibility Switch */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Right: Pin Toggle & Visibility Switch (Min 44x44px touch targets) */}
+                <div className="flex items-center gap-1 shrink-0">
                   {/* Pin button */}
                   <button
                     type="button"
                     onClick={() => toggleWidgetPin(widget.id)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors duration-150 ${
+                    className={`w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors duration-150 active:scale-95 ${
                       widget.pinned
                         ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60'
                         : 'text-slate-300 dark:text-[#525252] hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e1e1e]'
@@ -147,7 +147,7 @@ export function QuickCustomizeModal() {
                     title={widget.pinned ? 'Pinned to top (Click to unpin)' : 'Pin to top'}
                     aria-label={`${widget.pinned ? 'Unpin' : 'Pin'} ${widget.label}`}
                   >
-                    <Pin className={`w-3.5 h-3.5 ${widget.pinned ? 'fill-current' : ''}`} />
+                    <Pin className={`w-4 h-4 ${widget.pinned ? 'fill-current' : ''}`} />
                   </button>
 
                   {/* iOS-style Visibility Switch */}
@@ -156,16 +156,20 @@ export function QuickCustomizeModal() {
                     role="switch"
                     aria-checked={widget.visible}
                     onClick={() => toggleWidgetVisible(widget.id)}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
-                      widget.visible ? 'bg-blue-600' : 'bg-slate-200 dark:bg-[#262626]'
-                    }`}
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer rounded-xl hover:bg-slate-50 dark:hover:bg-[#141414] transition-colors"
                     aria-label={`Toggle visibility of ${widget.label}`}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition-transform duration-150 ease-out ${
-                        widget.visible ? 'translate-x-4' : 'translate-x-0'
+                      className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-150 ease-out ${
+                        widget.visible ? 'bg-blue-600' : 'bg-slate-200 dark:bg-[#262626]'
                       }`}
-                    />
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition-transform duration-150 ease-out ${
+                          widget.visible ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                      />
+                    </span>
                   </button>
                 </div>
               </div>

@@ -8,7 +8,31 @@ import { TransactionDrawer } from '@/components/transactions/TransactionDrawer';
 import { QuickCustomizeModal } from '@/components/dashboard/QuickCustomizeModal';
 import { BannerNoticeModal } from '@/components/ui/BannerNoticeModal';
 
+import { useApp } from '@/context/AppContext';
+
+const AUTH_SCREENS = new Set([
+  'welcome',
+  'login',
+  'signup',
+  'forgot-password',
+  'reset-password',
+  'magic-link',
+  'check-inbox',
+]);
+
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { currentScreen } = useApp();
+  const isAuthScreen = AUTH_SCREENS.has(currentScreen);
+
+  if (isAuthScreen) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-[#000000] text-slate-900 dark:text-white font-sans selection:bg-blue-600 selection:text-white antialiased">
+        <main className="flex-1 flex flex-col">{children}</main>
+        <BannerNoticeModal />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex bg-[#F9FAFB] dark:bg-[#000000] text-slate-900 dark:text-white font-sans selection:bg-blue-600 selection:text-white antialiased">
       {/* Desktop Collapsible Sidebar (260px expanded, 72px collapsed) */}

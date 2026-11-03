@@ -12,11 +12,12 @@ import {
   Edit2,
   X,
   Shield,
+  ArrowRight,
 } from 'lucide-react';
 import { formatINR, rupeesToPaise, paiseToRupees } from '@/lib/calculations/financial';
 
 export function ProfileView() {
-  const { userProfile, updateProfile } = useApp();
+  const { userProfile, updateProfile, setCurrentScreen } = useApp();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(userProfile.name);
@@ -156,6 +157,32 @@ export function ProfileView() {
               {userProfile.email || '—'}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Account & Backend Session Status */}
+      <div className="p-6 bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200/80 dark:border-[#262626] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Session Status
+            </h4>
+            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-[#141414] text-slate-600 dark:text-[#A3A3A3] border border-slate-200/60 dark:border-[#262626]">
+              Frontend-Only Preview
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-[#A3A3A3]">
+            Operating in standalone frontend mode. Supabase authentication and cloud database persistence will be integrated by the backend engineer in the next phase.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentScreen('welcome')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#A3A3A3] bg-slate-100 dark:bg-[#141414] hover:bg-slate-200 dark:hover:bg-[#262626] rounded-xl transition-colors duration-150 border border-slate-200/60 dark:border-[#262626]"
+          >
+            <span>Exit to Welcome Page</span>
+          </button>
         </div>
       </div>
 
