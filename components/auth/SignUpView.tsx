@@ -2,11 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Info, ArrowRight } from 'lucide-react';
 
 export function SignUpView() {
   const { setCurrentScreen } = useApp();
+  const { signUp, isConfigured, setAuthEmail } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -63,9 +65,25 @@ export function SignUpView() {
     }
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setLoading(false);
-    setSubmittedNotice(true);
+
+    if (isConfigured) {
+      const result = await signUp(trimmedEmail, password, trimmedName);
+      setLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to create account.');
+        return;
+      }
+      setAuthEmail(trimmedEmail);
+      if (result.requiresEmailConfirmation) {
+        setCurrentScreen('check-inbox');
+      } else {
+        setCurrentScreen('dashboard');
+      }
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      setLoading(false);
+      setSubmittedNotice(true);
+    }
   };
 
   return (

@@ -28,12 +28,12 @@ export const isSupabaseConfigured = (): boolean => {
   return getSupabaseConfig() !== null;
 };
 
-let supabaseInstance: SupabaseClient | null = null;
+let supabaseInstance: SupabaseClient<any> | null = null;
 
 /**
  * Returns the singleton Supabase client instance or null if not configured.
  */
-export function getSupabase(): SupabaseClient | null {
+export function getSupabase(): SupabaseClient<any> | null {
   const config = getSupabaseConfig();
   if (!config) {
     return null;

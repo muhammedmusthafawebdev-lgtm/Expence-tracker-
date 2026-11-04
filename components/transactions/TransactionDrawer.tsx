@@ -121,15 +121,18 @@ function TransactionDrawerContent({ mode, initialData }: TransactionDrawerConten
 
     setIsSubmitting(true);
     try {
-      await submitTransaction({
-        type,
-        amountPaise: rupeesToPaise(parsedAmount),
-        categoryId,
-        date,
-        paymentMethod: (paymentMethod as PaymentMethod) || undefined,
-        description: description.trim() || undefined,
-        isRecurring: type === 'expense' ? isRecurring : false,
-      });
+      await submitTransaction(
+        {
+          type,
+          amountPaise: rupeesToPaise(parsedAmount),
+          categoryId,
+          date,
+          paymentMethod: (paymentMethod as PaymentMethod) || undefined,
+          description: description.trim() || undefined,
+          isRecurring: type === 'expense' ? isRecurring : false,
+        },
+        mode === 'edit' && initialData ? initialData.id : undefined
+      );
     } finally {
       setIsSubmitting(false);
     }

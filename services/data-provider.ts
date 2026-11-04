@@ -7,6 +7,8 @@ import {
   TransactionType,
 } from '@/types';
 import { INITIAL_STUDENT_CATEGORIES } from '@/constants/categories';
+import { isSupabaseConfigured } from '@/services/supabase/client';
+import { SupabaseDataProvider } from '@/services/supabase/supabase-data-provider';
 
 export interface TransactionFilters {
   search?: string;
@@ -24,6 +26,12 @@ export interface IDataProvider {
   // Transactions
   getTransactions(filters?: TransactionFilters): Promise<Transaction[]>;
   createTransaction(data: Omit<Transaction, 'id' | 'createdAt'>): Promise<{
+    success: boolean;
+    persisted: boolean;
+    item?: Transaction;
+    warningMessage: string;
+  }>;
+  updateTransaction(id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>): Promise<{
     success: boolean;
     persisted: boolean;
     item?: Transaction;
@@ -53,6 +61,7 @@ export interface IDataProvider {
     item?: SavingsGoal;
     warningMessage: string;
   }>;
+  deleteSavingsGoal(id: string): Promise<boolean>;
   addSavingsAllocation(
     goalId: string,
     amountPaise: number,
@@ -155,6 +164,26 @@ export class ClientSessionDataProvider implements IDataProvider {
     };
   }
 
+  async updateTransaction(id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) {
+    const index = this.transactions.findIndex((t) => t.id === id);
+    if (index === -1) {
+      return { success: false, persisted: false, warningMessage: 'Transaction not found.' };
+    }
+    const current = this.transactions[index];
+    const updated: Transaction = {
+      ...current,
+      ...data,
+      amountPaise: data.amountPaise !== undefined ? Math.round(data.amountPaise) : current.amountPaise,
+    };
+    this.transactions[index] = updated;
+    return {
+      success: true,
+      persisted: false,
+      item: updated,
+      warningMessage: 'Transaction updated in local session.',
+    };
+  }
+
   async deleteTransaction(id: string): Promise<boolean> {
     const tx = this.transactions.find((t) => t.id === id);
     if (!tx) return false;
@@ -240,6 +269,11 @@ export class ClientSessionDataProvider implements IDataProvider {
       warningMessage:
         'Frontend Preview: Savings goal created in memory. Connect backend persistence for multi-device sync.',
     };
+  }
+
+  async deleteSavingsGoal(id: string): Promise<boolean> {
+    this.savingsGoals = this.savingsGoals.filter((g) => g.id !== id);
+    return true;
   }
 
   async addSavingsAllocation(
@@ -370,9 +404,100 @@ export class ClientSessionDataProvider implements IDataProvider {
   }
 }
 
-// Global frontend data provider singleton
-// Implements IDataProvider with zero fake data and in-memory session reactivity.
-// Prepared as a clear interface for the future Supabase backend tool to implement.
-export const dataProvider: IDataProvider = new ClientSessionDataProvider();
+/**
+ * Production Hybrid Data Provider
+ * Automatically routes to real Supabase database when Supabase is configured,
+ * and seamlessly provides volatile guest/offline session storage when unconfigured.
+ */
+export class HybridDataProvider implements IDataProvider {
+  private localProvider = new ClientSessionDataProvider();
+  private supabaseProvider: SupabaseDataProvider | null = null;
+
+  public get isBackendConnected(): boolean {
+    return isSupabaseConfigured();
+  }
+
+  private getActiveProvider(): IDataProvider {
+    if (isSupabaseConfigured()) {
+      if (!this.supabaseProvider) {
+        this.supabaseProvider = new SupabaseDataProvider();
+      }
+      return this.supabaseProvider;
+    }
+    return this.localProvider;
+  }
+
+  async getTransactions(filters?: TransactionFilters): Promise<Transaction[]> {
+    return this.getActiveProvider().getTransactions(filters);
+  }
+  async createTransaction(data: Omit<Transaction, 'id' | 'createdAt'>) {
+    return this.getActiveProvider().createTransaction(data);
+  }
+  async updateTransaction(id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) {
+    return this.getActiveProvider().updateTransaction(id, data);
+  }
+  async deleteTransaction(id: string): Promise<boolean> {
+    return this.getActiveProvider().deleteTransaction(id);
+  }
+  async restoreTransaction(id: string): Promise<boolean> {
+    return this.getActiveProvider().restoreTransaction(id);
+  }
+  async permanentlyDeleteTransaction(id: string): Promise<boolean> {
+    return this.getActiveProvider().permanentlyDeleteTransaction(id);
+  }
+  async emptyTrash(): Promise<number> {
+    return this.getActiveProvider().emptyTrash();
+  }
+  async getRecentlyDeleted(): Promise<Transaction[]> {
+    return this.getActiveProvider().getRecentlyDeleted();
+  }
+  async getBudgets(): Promise<Budget[]> {
+    return this.getActiveProvider().getBudgets();
+  }
+  async createBudget(data: Omit<Budget, 'id' | 'createdAt'>) {
+    return this.getActiveProvider().createBudget(data);
+  }
+  async deleteBudget(id: string): Promise<boolean> {
+    return this.getActiveProvider().deleteBudget(id);
+  }
+  async getSavingsGoals(): Promise<SavingsGoal[]> {
+    return this.getActiveProvider().getSavingsGoals();
+  }
+  async createSavingsGoal(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'allocations' | 'currentAmountPaise'>) {
+    return this.getActiveProvider().createSavingsGoal(data);
+  }
+  async deleteSavingsGoal(id: string): Promise<boolean> {
+    return this.getActiveProvider().deleteSavingsGoal(id);
+  }
+  async addSavingsAllocation(
+    goalId: string,
+    amountPaise: number,
+    type: 'deposit' | 'withdrawal',
+    note?: string
+  ) {
+    return this.getActiveProvider().addSavingsAllocation(goalId, amountPaise, type, note);
+  }
+  async getCategories(): Promise<Category[]> {
+    return this.getActiveProvider().getCategories();
+  }
+  async addCustomCategory(data: Omit<Category, 'id' | 'isCustom'>): Promise<Category> {
+    return this.getActiveProvider().addCustomCategory(data);
+  }
+  async updateCategory(id: string, data: Partial<Omit<Category, 'id'>>): Promise<Category> {
+    return this.getActiveProvider().updateCategory(id, data);
+  }
+  async deleteCategory(id: string): Promise<boolean> {
+    return this.getActiveProvider().deleteCategory(id);
+  }
+  async getUserProfile(): Promise<UserProfile> {
+    return this.getActiveProvider().getUserProfile();
+  }
+  async updateUserProfile(data: Partial<UserProfile>): Promise<UserProfile> {
+    return this.getActiveProvider().updateUserProfile(data);
+  }
+}
+
+// Global data provider singleton: automatically connects Supabase when configured
+export const dataProvider: IDataProvider = new HybridDataProvider();
 
 

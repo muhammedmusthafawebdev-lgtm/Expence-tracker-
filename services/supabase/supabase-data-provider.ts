@@ -161,7 +161,7 @@ export class SupabaseDataProvider implements IDataProvider {
 
       const { data: inserted, error } = await supabase
         .from('transactions')
-        .insert(insertPayload)
+        .insert(insertPayload as any)
         .select()
         .single();
 
@@ -196,6 +196,72 @@ export class SupabaseDataProvider implements IDataProvider {
       };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save transaction';
+      return {
+        success: false,
+        persisted: false,
+        warningMessage: msg,
+      };
+    }
+  }
+
+  async updateTransaction(id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) {
+      return {
+        success: false,
+        persisted: false,
+        warningMessage: 'Supabase database tables are not provisioned yet.',
+      };
+    }
+
+    try {
+      const updatePayload: Record<string, unknown> = {};
+      if (data.type !== undefined) updatePayload.type = data.type;
+      if (data.amountPaise !== undefined) updatePayload.amount_paise = Math.round(data.amountPaise);
+      if (data.categoryId !== undefined) updatePayload.category_id = data.categoryId || null;
+      if (data.date !== undefined) updatePayload.date = data.date;
+      if (data.paymentMethod !== undefined) updatePayload.payment_method = data.paymentMethod || null;
+      if (data.description !== undefined) updatePayload.description = data.description || null;
+      if (data.isRecurring !== undefined) updatePayload.is_recurring = data.isRecurring;
+      if (data.debtType !== undefined) updatePayload.debt_type = data.debtType || null;
+
+      const { data: updated, error } = await supabase
+        .from('transactions')
+        .update(updatePayload as any)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        if (this.isSchemaCacheError(error)) {
+          this.handleSchemaCacheNotice('transactions');
+        }
+        throw error;
+      }
+
+      const row = updated as unknown as TransactionRow;
+      const tx: Transaction = {
+        id: row.id,
+        type: row.type,
+        amountPaise: Number(row.amount_paise),
+        categoryId: row.category_id || '',
+        date: row.date,
+        paymentMethod: (row.payment_method as Transaction['paymentMethod']) || undefined,
+        description: row.description || '',
+        isRecurring: row.is_recurring,
+        debtType: (row.debt_type as Transaction['debtType']) || undefined,
+        createdAt: row.created_at,
+        deletedAt: row.deleted_at,
+      };
+
+      return {
+        success: true,
+        persisted: true,
+        item: tx,
+        warningMessage: '',
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update transaction';
       return {
         success: false,
         persisted: false,
@@ -588,6 +654,17 @@ export class SupabaseDataProvider implements IDataProvider {
     }
   }
 
+  async deleteSavingsGoal(id: string): Promise<boolean> {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) return false;
+    try {
+      const { error } = await supabase.from('savings_goals').delete().eq('id', id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
   // =========================================================================
   // CATEGORIES
   // =========================================================================
@@ -676,7 +753,7 @@ export class SupabaseDataProvider implements IDataProvider {
 
     const { data: updated, error } = await supabase
       .from('categories')
-      .update(updatePayload)
+      .update(updatePayload as any)
       .eq('id', id)
       .select()
       .single();
@@ -783,7 +860,7 @@ export class SupabaseDataProvider implements IDataProvider {
 
     const { data: updated, error } = await supabase
       .from('user_profiles')
-      .update(updatePayload)
+      .update(updatePayload as any)
       .eq('id', userId)
       .select()
       .single();

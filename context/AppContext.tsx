@@ -14,6 +14,7 @@ import {
   FinancialSummary,
 } from '@/types';
 import { dataProvider } from '@/services/data-provider';
+import { useAuth } from './AuthContext';
 import {
   calculateNetBalance,
   calculateAvailableBalance,
@@ -61,7 +62,10 @@ interface AppContextType {
   closeTransactionDrawer: () => void;
 
   // Mutators (with strict honesty / warning message triggers)
-  submitTransaction: (data: Omit<Transaction, 'id' | 'createdAt' | 'deletedAt'>) => Promise<{
+  submitTransaction: (
+    data: Omit<Transaction, 'id' | 'createdAt' | 'deletedAt'>,
+    id?: string
+  ) => Promise<{
     success: boolean;
     warningMessage: string;
   }>;
@@ -82,6 +86,7 @@ interface AppContextType {
     success: boolean;
     warningMessage: string;
   }>;
+  deleteSavingsGoal: (id: string) => Promise<boolean>;
   submitSavingsAllocation: (
     goalId: string,
     amountPaise: number,
@@ -212,31 +217,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     currency: 'INR',
   });
 
-  // Reload data from data provider (e.g. after auth change or refresh)
-  const reloadAppData = async () => {
+  // Dashboard widgets state with localStorage recovery
+  const [widgets, setWidgets] = useState<DashboardWidgetItem[]>(() => {
+    if (typeof window === 'undefined') return DEFAULT_DASHBOARD_WIDGETS;
     try {
-      const [txs, delTxs, cats, bgs, goals, profile] = await Promise.all([
-        dataProvider.getTransactions(),
-        dataProvider.getRecentlyDeleted(),
-        dataProvider.getCategories(),
-        dataProvider.getBudgets(),
-        dataProvider.getSavingsGoals(),
-        dataProvider.getUserProfile(),
-      ]);
-
-      setTransactions(txs);
-      setDeletedTransactions(delTxs);
-      setCategories(cats);
-      setBudgets(bgs);
-      setSavingsGoals(goals);
-      setUserProfile(profile);
-    } catch (err) {
-      console.error('Failed to reload app data:', err);
+      const savedWidgets = localStorage.getItem('expence_tracker_widgets_v4');
+      if (savedWidgets) {
+        const parsed = JSON.parse(savedWidgets) as DashboardWidgetItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const merged = DEFAULT_DASHBOARD_WIDGETS.map((def) => {
+            const found = parsed.find((p) => p.id === def.id);
+            return found ? { ...def, visible: found.visible, pinned: found.pinned } : def;
+          });
+          return [...merged].sort((a, b) => {
+            const idxA = parsed.findIndex((p) => p.id === a.id);
+            const idxB = parsed.findIndex((p) => p.id === b.id);
+            return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+          });
+        }
+      }
+    } catch {
+      // Ignore
     }
-  };
-
-  // Dashboard widgets state
-  const [widgets, setWidgets] = useState<DashboardWidgetItem[]>(DEFAULT_DASHBOARD_WIDGETS);
+    return DEFAULT_DASHBOARD_WIDGETS;
+  });
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
 
   // Computed widgetConfig for backwards compatibility
@@ -273,9 +277,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     type: 'info' | 'warning' | 'notice';
   } | null>(null);
 
-  // Initial load from dataProvider
-  useEffect(() => {
-    async function loadInitial() {
+  const { user } = useAuth();
+
+  const reloadAppData = async () => {
+    try {
       const [txs, delTxs, cats, bgs, goals, profile] = await Promise.all([
         dataProvider.getTransactions(),
         dataProvider.getRecentlyDeleted(),
@@ -291,34 +296,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setBudgets(bgs);
       setSavingsGoals(goals);
       setUserProfile(profile);
+    } catch (err) {
+      console.error('Error reloading app data:', err);
+    }
+  };
 
-      // Load widget preferences if in localStorage
+  // Initial load and reload whenever authenticated user changes
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
       try {
-        const savedWidgets = localStorage.getItem('expence_tracker_widgets_v4');
-        if (savedWidgets) {
-          const parsed = JSON.parse(savedWidgets) as DashboardWidgetItem[];
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            // Merge with defaults to ensure all keys exist
-            const merged = DEFAULT_DASHBOARD_WIDGETS.map((def) => {
-              const found = parsed.find((p) => p.id === def.id);
-              return found ? { ...def, visible: found.visible, pinned: found.pinned } : def;
-            });
-            // Re-order by saved order
-            const ordered = [...merged].sort((a, b) => {
-              const idxA = parsed.findIndex((p) => p.id === a.id);
-              const idxB = parsed.findIndex((p) => p.id === b.id);
-              return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-            });
-            setWidgets(ordered);
-          }
+        const [txs, delTxs, cats, bgs, goals, profile] = await Promise.all([
+          dataProvider.getTransactions(),
+          dataProvider.getRecentlyDeleted(),
+          dataProvider.getCategories(),
+          dataProvider.getBudgets(),
+          dataProvider.getSavingsGoals(),
+          dataProvider.getUserProfile(),
+        ]);
+
+        if (isMounted) {
+          setTransactions(txs);
+          setDeletedTransactions(delTxs);
+          setCategories(cats);
+          setBudgets(bgs);
+          setSavingsGoals(goals);
+          setUserProfile(profile);
         }
-      } catch {
-        // Ignore
+      } catch (err) {
+        console.error('Error reloading app data:', err);
       }
     }
 
-    loadInitial();
-  }, []);
+    void loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed((prev) => !prev);
@@ -441,19 +457,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [transactions, savingsGoals]);
 
-  // Submit Transaction
+  // Submit Transaction (Create or Update)
   const submitTransaction = async (
-    data: Omit<Transaction, 'id' | 'createdAt' | 'deletedAt'>
+    data: Omit<Transaction, 'id' | 'createdAt' | 'deletedAt'>,
+    id?: string
   ) => {
-    const res = await dataProvider.createTransaction(data);
+    const res = id
+      ? await dataProvider.updateTransaction(id, data)
+      : await dataProvider.createTransaction(data);
     const updated = await dataProvider.getTransactions();
     setTransactions(updated);
     closeTransactionDrawer();
 
     showNotice(
-      'Form Validated & Preview Active',
+      id ? 'Transaction Updated' : 'Transaction Recorded',
       res.warningMessage,
-      'warning'
+      res.success ? 'info' : 'warning'
     );
 
     return {
@@ -537,6 +556,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSavingsGoals(updated);
     showNotice('Savings Goal Created', res.warningMessage, 'warning');
     return { success: res.success, warningMessage: res.warningMessage };
+  };
+
+  const deleteSavingsGoal = async (id: string) => {
+    const success = await dataProvider.deleteSavingsGoal(id);
+    const updated = await dataProvider.getSavingsGoals();
+    setSavingsGoals(updated);
+    showNotice('Savings Goal Removed', 'The savings goal has been deleted.', 'info');
+    return success;
   };
 
   const submitSavingsAllocation = async (
@@ -647,6 +674,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         submitBudget,
         deleteBudget,
         submitSavingsGoal,
+        deleteSavingsGoal,
         submitSavingsAllocation,
         addCustomCategory,
         updateCategory,

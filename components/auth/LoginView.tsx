@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { Eye, EyeOff, Loader2, AlertCircle, Info, ArrowRight } from 'lucide-react';
 
 export function LoginView() {
   const { setCurrentScreen } = useApp();
+  const { signIn, isConfigured } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,10 +36,20 @@ export function LoginView() {
     }
 
     setLoading(true);
-    // Realistic UI transition
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setLoading(false);
-    setSubmittedNotice(true);
+
+    if (isConfigured) {
+      const result = await signIn(trimmedEmail, password);
+      setLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to sign in. Please verify your email and password.');
+        return;
+      }
+      setCurrentScreen('dashboard');
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      setLoading(false);
+      setSubmittedNotice(true);
+    }
   };
 
   return (

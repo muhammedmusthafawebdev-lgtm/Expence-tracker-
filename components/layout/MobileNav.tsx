@@ -15,11 +15,14 @@ import {
   User,
   Trash2,
   Tag,
+  LogOut,
 } from 'lucide-react';
 import { AppScreen } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export function MobileNav() {
   const { currentScreen, setCurrentScreen, deletedTransactions } = useApp();
+  const { user, signOut } = useAuth();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const deletedCount = deletedTransactions.length;
@@ -158,6 +161,42 @@ export function MobileNav() {
                   </button>
                 );
               })}
+            </div>
+
+            {/* Session Action Footer */}
+            <div className="pt-3 mt-2 border-t border-slate-100 dark:border-[#262626] flex items-center gap-2">
+              {user ? (
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    setIsMoreOpen(false);
+                    setCurrentScreen('welcome');
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 font-medium text-xs flex items-center justify-center gap-2 transition-colors min-h-[44px]"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    setCurrentScreen('login');
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-medium text-xs flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <span>Sign In</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  setCurrentScreen('welcome');
+                }}
+                className="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-[#141414] hover:bg-slate-200 dark:hover:bg-[#262626] text-slate-700 dark:text-[#A3A3A3] font-medium text-xs min-h-[44px]"
+              >
+                Welcome Page
+              </button>
             </div>
           </div>
         </div>

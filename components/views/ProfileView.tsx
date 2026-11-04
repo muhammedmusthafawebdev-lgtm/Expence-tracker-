@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   User,
   GraduationCap,
@@ -13,11 +14,13 @@ import {
   X,
   Shield,
   ArrowRight,
+  LogOut,
 } from 'lucide-react';
 import { formatINR, rupeesToPaise, paiseToRupees } from '@/lib/calculations/financial';
 
 export function ProfileView() {
   const { userProfile, updateProfile, setCurrentScreen } = useApp();
+  const { user, signOut, isConfigured } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(userProfile.name);
@@ -167,21 +170,55 @@ export function ProfileView() {
             <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
               Session Status
             </h4>
-            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-[#141414] text-slate-600 dark:text-[#A3A3A3] border border-slate-200/60 dark:border-[#262626]">
-              Frontend-Only Preview
-            </span>
+            {user ? (
+              <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/60">
+                Supabase Authenticated
+              </span>
+            ) : isConfigured ? (
+              <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/60">
+                Guest Mode (Supabase Connected)
+              </span>
+            ) : (
+              <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-[#141414] text-slate-600 dark:text-[#A3A3A3] border border-slate-200/60 dark:border-[#262626]">
+                Local Client Session
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-500 dark:text-[#A3A3A3]">
-            Operating in standalone frontend mode. Supabase authentication and cloud database persistence will be integrated by the backend engineer in the next phase.
+            {user
+              ? `Signed in as ${user.email}. Personal finance records are isolated and protected by PostgreSQL RLS.`
+              : isConfigured
+              ? 'Exploring as a guest. Sign in or create an account to persist your transactions to your cloud database.'
+              : 'Operating in standalone local mode. Configure Supabase environment variables to enable multi-device cloud persistence.'}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          {user ? (
+            <button
+              onClick={async () => {
+                await signOut();
+                setCurrentScreen('welcome');
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl transition-colors duration-150 border border-red-200/60 dark:border-red-900/60"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setCurrentScreen('login')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-900 dark:bg-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 rounded-xl transition-colors duration-150"
+            >
+              <span>Sign In / Register</span>
+            </button>
+          )}
+
           <button
             onClick={() => setCurrentScreen('welcome')}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-[#A3A3A3] bg-slate-100 dark:bg-[#141414] hover:bg-slate-200 dark:hover:bg-[#262626] rounded-xl transition-colors duration-150 border border-slate-200/60 dark:border-[#262626]"
           >
-            <span>Exit to Welcome Page</span>
+            <span>Welcome Page</span>
           </button>
         </div>
       </div>

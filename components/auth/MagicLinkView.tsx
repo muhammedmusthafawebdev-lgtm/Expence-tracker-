@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { Sparkles, Loader2, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export function MagicLinkView() {
   const { setCurrentScreen } = useApp();
+  const { signInWithMagicLink, isConfigured } = useAuth();
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,10 +34,22 @@ export function MagicLinkView() {
     }
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setLoading(false);
-    setSentSuccess(true);
-    setCountdown(60);
+
+    if (isConfigured) {
+      const result = await signInWithMagicLink(trimmed);
+      setLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to dispatch magic link.');
+        return;
+      }
+      setSentSuccess(true);
+      setCountdown(60);
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      setLoading(false);
+      setSentSuccess(true);
+      setCountdown(60);
+    }
   };
 
   return (

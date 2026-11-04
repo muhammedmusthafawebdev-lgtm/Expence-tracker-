@@ -10,12 +10,13 @@ import {
   Calendar,
   X,
   Info,
+  Trash2,
 } from 'lucide-react';
 import { formatINR, rupeesToPaise } from '@/lib/calculations/financial';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 export function SavingsView() {
-  const { savingsGoals, submitSavingsGoal, submitSavingsAllocation } = useApp();
+  const { savingsGoals, submitSavingsGoal, submitSavingsAllocation, deleteSavingsGoal } = useApp();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [allocationModal, setAllocationModal] = useState<{
@@ -173,9 +174,23 @@ export function SavingsView() {
                         <span>Target: {goal.targetDate}</span>
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/60">
-                      {pct}%
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/60">
+                        {pct}%
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete savings goal "${goal.title}"?`)) {
+                            deleteSavingsGoal(goal.id);
+                          }
+                        }}
+                        className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        title="Delete savings goal"
+                        aria-label="Delete savings goal"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   {goal.notes && (

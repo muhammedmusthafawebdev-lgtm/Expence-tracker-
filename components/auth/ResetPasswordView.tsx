@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Info, ArrowRight } from 'lucide-react';
 
 export function ResetPasswordView() {
   const { setCurrentScreen } = useApp();
+  const { updatePassword, isConfigured } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,9 +34,20 @@ export function ResetPasswordView() {
     }
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setLoading(false);
-    setSubmittedNotice(true);
+
+    if (isConfigured) {
+      const result = await updatePassword(password);
+      setLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to update password.');
+        return;
+      }
+      setSubmittedNotice(true);
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setLoading(false);
+      setSubmittedNotice(true);
+    }
   };
 
   return (

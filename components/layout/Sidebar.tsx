@@ -16,8 +16,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Tag,
+  LogOut,
 } from 'lucide-react';
 import { AppScreen } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export function Sidebar() {
   const {
@@ -28,6 +30,7 @@ export function Sidebar() {
     deletedTransactions,
     userProfile,
   } = useApp();
+  const { user, signOut } = useAuth();
 
   const deletedCount = deletedTransactions.length;
 
@@ -139,30 +142,46 @@ export function Sidebar() {
       </div>
 
       {/* Profile Section Footer */}
-      <div className="p-3 border-t border-slate-100 dark:border-[#262626]">
-        <button
-          onClick={() => setCurrentScreen('profile')}
-          title={isSidebarCollapsed ? 'Profile' : undefined}
-          className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-colors duration-150 ${
-            currentScreen === 'profile'
-              ? 'bg-slate-100 dark:bg-[#141414] ring-1 ring-slate-200 dark:ring-[#262626]'
-              : 'hover:bg-slate-50 dark:hover:bg-[#141414]'
-          }`}
-        >
-          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs shrink-0">
-            {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
-          </div>
-          {!isSidebarCollapsed && (
-            <div className="text-left overflow-hidden">
-              <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                {userProfile.name || 'Student Account'}
-              </div>
-              <div className="text-xs text-slate-500 dark:text-[#A3A3A3] truncate">
-                {userProfile.studentType || 'College Undergraduate'}
-              </div>
+      <div className="p-3 border-t border-slate-100 dark:border-[#262626] space-y-1">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setCurrentScreen('profile')}
+            title={isSidebarCollapsed ? 'Profile' : undefined}
+            className={`flex-1 flex items-center gap-2.5 p-2 rounded-xl transition-colors duration-150 ${
+              currentScreen === 'profile'
+                ? 'bg-slate-100 dark:bg-[#141414] ring-1 ring-slate-200 dark:ring-[#262626]'
+                : 'hover:bg-slate-50 dark:hover:bg-[#141414]'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs shrink-0">
+              {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
             </div>
+            {!isSidebarCollapsed && (
+              <div className="text-left overflow-hidden flex-1">
+                <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                  {userProfile.name || (user?.email ? user.email.split('@')[0] : 'Student Account')}
+                </div>
+                <div className="text-xs text-slate-500 dark:text-[#A3A3A3] truncate">
+                  {user ? 'Cloud Synced' : userProfile.studentType || 'Local Session'}
+                </div>
+              </div>
+            )}
+          </button>
+
+          {!isSidebarCollapsed && user && (
+            <button
+              onClick={async () => {
+                await signOut();
+                setCurrentScreen('welcome');
+              }}
+              title="Sign Out"
+              aria-label="Sign Out"
+              className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           )}
-        </button>
+        </div>
       </div>
     </aside>
   );

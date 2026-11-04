@@ -8,7 +8,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 export function ForgotPasswordView() {
   const { setCurrentScreen } = useApp();
-  const { setAuthEmail } = useAuth();
+  const { setAuthEmail, resetPasswordForEmail, isConfigured } = useAuth();
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,8 +25,18 @@ export function ForgotPasswordView() {
     }
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setLoading(false);
+    if (isConfigured) {
+      const result = await resetPasswordForEmail(trimmed);
+      setLoading(false);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to dispatch password recovery email.');
+        return;
+      }
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setLoading(false);
+    }
+
     setAuthEmail(trimmed);
     setCurrentScreen('check-inbox');
   };
