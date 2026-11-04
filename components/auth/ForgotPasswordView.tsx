@@ -33,13 +33,13 @@ export function ForgotPasswordView() {
 
   return (
     <AuthLayout backTo="login" backLabel="Back to login">
-      <div className="bg-white dark:bg-[#0E0E11] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-7 sm:p-9 shadow-sm">
-        <div className="mb-7 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+      <div className="bg-white dark:bg-[#0E0E11] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs w-full">
+        <div className="mb-6 text-center">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-1.5">
             Reset your password
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Enter your email and we&apos;ll simulate sending instructions to reset your password.
+            Enter your email and we&apos;ll send instructions to reset your password.
           </p>
         </div>
 
@@ -62,14 +62,14 @@ export function ForgotPasswordView() {
               placeholder="name@example.com"
               autoComplete="email"
               required
-              className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+              className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white placeholder:text-slate-400 min-h-[44px]"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-60 transition-all duration-150 flex items-center justify-center gap-2 shadow-xs"
+            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-60 transition-all duration-150 flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
           >
             {loading ? (
               <>

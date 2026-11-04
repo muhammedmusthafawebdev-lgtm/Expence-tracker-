@@ -62,7 +62,7 @@ export function RecentlyDeletedView() {
         {deletedTransactions.length > 0 && (
           <button
             onClick={() => setShowEmptyTrashModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl transition-colors border border-red-200/80 dark:border-red-900/80 self-start sm:self-auto active:scale-95"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[40px] text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl transition-colors border border-red-200/80 dark:border-red-900/80 self-start sm:self-auto active:scale-95"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Empty Trash ({deletedTransactions.length})
@@ -114,14 +114,14 @@ export function RecentlyDeletedView() {
                 <div className="flex items-center gap-2 self-end sm:self-auto">
                   <button
                     onClick={() => restoreTransaction(tx.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-150"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[38px] text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-150 active:scale-95"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     Restore
                   </button>
                   <button
                     onClick={() => setConfirmDeleteId(tx.id)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/60 rounded-xl transition-colors duration-150"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[38px] text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/60 rounded-xl transition-colors duration-150 active:scale-95"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Purge

@@ -155,9 +155,9 @@ function CustomCategoryModalContent({
       aria-modal="true"
       aria-labelledby="custom-cat-title"
     >
-      <div className="relative w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-xl overflow-hidden">
+      <div className="relative w-full max-w-md max-h-[90dvh] overflow-y-auto bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-2">
+        <div className="flex items-center justify-between px-5 sm:px-6 pt-5 pb-2">
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
@@ -179,14 +179,14 @@ function CustomCategoryModalContent({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
+            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
           {/* Type Selector (Segmented buttons) */}
           <div>
             <label className="block text-xs font-medium text-slate-700 dark:text-[#A3A3A3] mb-1.5">
@@ -201,7 +201,7 @@ function CustomCategoryModalContent({
                     setSelectedColor('#2563EB');
                   }
                 }}
-                className={`py-1.5 text-xs font-semibold rounded-lg transition-colors duration-150 ${
+                className={`py-2 min-h-[38px] text-xs font-semibold rounded-lg transition-colors duration-150 ${
                   type === 'expense'
                     ? 'bg-rose-600 text-white shadow-xs'
                     : 'text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white'
@@ -217,7 +217,7 @@ function CustomCategoryModalContent({
                     setSelectedColor('#16A34A');
                   }
                 }}
-                className={`py-1.5 text-xs font-semibold rounded-lg transition-colors duration-150 ${
+                className={`py-2 min-h-[38px] text-xs font-semibold rounded-lg transition-colors duration-150 ${
                   type === 'income'
                     ? 'bg-emerald-600 text-white shadow-xs'
                     : 'text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white'
@@ -241,7 +241,7 @@ function CustomCategoryModalContent({
                 if (error) setError(null);
               }}
               placeholder={type === 'expense' ? 'e.g., Groceries, Rent, Coffee' : 'e.g., Salary, Allowance, Freelance'}
-              className="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3.5 py-2.5 text-base sm:text-xs min-h-[42px] bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
               autoFocus
             />
             {error && (
@@ -283,7 +283,7 @@ function CustomCategoryModalContent({
             <label className="block text-xs font-medium text-slate-700 dark:text-[#A3A3A3] mb-1.5">
               Color
             </label>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               {AVAILABLE_COLORS.map((colorHex) => {
                 const isSelected = selectedColor === colorHex;
                 return (
@@ -291,7 +291,7 @@ function CustomCategoryModalContent({
                     key={colorHex}
                     type="button"
                     onClick={() => setSelectedColor(colorHex)}
-                    className="w-6 h-6 rounded-full flex items-center justify-center transition-transform duration-150 hover:scale-110 shrink-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-150 hover:scale-110 active:scale-95 shrink-0"
                     style={{ backgroundColor: colorHex }}
                     aria-label={`Select color ${colorHex}`}
                   >
@@ -303,19 +303,19 @@ function CustomCategoryModalContent({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-2 flex items-center justify-end gap-2">
+          <div className="pt-2 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors duration-150"
+              className="px-4 py-2.5 min-h-[42px] text-xs font-medium text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors duration-150"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-slate-200 rounded-xl transition-colors duration-150 disabled:opacity-50"
+              className="px-5 py-2.5 min-h-[42px] text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-slate-200 rounded-xl transition-colors duration-150 disabled:opacity-50"
             >
               {isSubmitting ? 'Saving...' : isEditMode ? 'Update Category' : 'Create Category'}
             </button>

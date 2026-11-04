@@ -74,7 +74,7 @@ export function CategoriesView() {
 
         <button
           onClick={() => handleOpenCreate(activeTab === 'income' ? 'income' : 'expense')}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-slate-200 rounded-xl transition-colors duration-150 shadow-xs self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[40px] text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-white dark:text-black dark:hover:bg-slate-200 rounded-xl transition-colors duration-150 shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" /> Create Category
         </button>
@@ -84,7 +84,7 @@ export function CategoriesView() {
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-[#262626] pb-3">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 ${
+          className={`px-3.5 py-2 min-h-[36px] text-xs font-medium rounded-lg transition-colors duration-150 ${
             activeTab === 'all'
               ? 'bg-slate-900 text-white dark:bg-white dark:text-black font-semibold'
               : 'text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414]'
@@ -94,7 +94,7 @@ export function CategoriesView() {
         </button>
         <button
           onClick={() => setActiveTab('expense')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 ${
+          className={`px-3.5 py-2 min-h-[36px] text-xs font-medium rounded-lg transition-colors duration-150 ${
             activeTab === 'expense'
               ? 'bg-rose-600 text-white font-semibold'
               : 'text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414]'
@@ -104,7 +104,7 @@ export function CategoriesView() {
         </button>
         <button
           onClick={() => setActiveTab('income')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors duration-150 ${
+          className={`px-3.5 py-2 min-h-[36px] text-xs font-medium rounded-lg transition-colors duration-150 ${
             activeTab === 'income'
               ? 'bg-emerald-600 text-white font-semibold'
               : 'text-slate-600 dark:text-[#A3A3A3] hover:bg-slate-100 dark:hover:bg-[#141414]'
@@ -181,7 +181,7 @@ export function CategoriesView() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => handleOpenEdit(cat)}
-                      className="p-2 text-slate-500 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a1a1a] rounded-lg transition-colors duration-150"
+                      className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a1a1a] rounded-lg transition-colors duration-150"
                       title="Edit Category"
                       aria-label={`Edit ${cat.name}`}
                     >
@@ -189,7 +189,7 @@ export function CategoriesView() {
                     </button>
                     <button
                       onClick={() => setCategoryToDelete(cat)}
-                      className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors duration-150"
+                      className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors duration-150"
                       title="Delete Category"
                       aria-label={`Delete ${cat.name}`}
                     >
@@ -221,25 +221,25 @@ export function CategoriesView() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-sm bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] p-5 shadow-2xl">
+          <div className="w-full max-w-sm bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] p-5 sm:p-6 shadow-2xl">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
               Delete &ldquo;{categoryToDelete.name}&rdquo;?
             </h3>
-            <p className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-2">
+            <p className="text-xs text-slate-500 dark:text-[#A3A3A3] mt-2 leading-relaxed">
               Are you sure you want to delete this category? Existing transactions will retain their historical records.
             </p>
-            <div className="mt-4 flex items-center justify-end gap-2">
+            <div className="mt-5 flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setCategoryToDelete(null)}
-                className="px-3.5 py-1.5 text-xs font-medium text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white rounded-xl"
+                className="px-4 py-2 min-h-[40px] text-xs font-medium text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors duration-150"
+                className="px-4 py-2 min-h-[40px] text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors duration-150"
               >
                 Delete
               </button>

@@ -251,19 +251,19 @@ export function TransactionsView() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditTransaction(tx)}
-                        className="p-1 text-slate-400 hover:text-blue-600 transition-colors duration-150"
+                        className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
                         title="Edit"
-                        aria-label="Edit"
+                        aria-label={`Edit ${cat?.name || 'transaction'}`}
                       >
-                        <Edit2 className="w-3 h-3" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deleteTransaction(tx.id)}
-                        className="p-1 text-slate-400 hover:text-red-600 transition-colors duration-150"
+                        className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors duration-150"
                         title="Delete"
-                        aria-label="Delete"
+                        aria-label={`Delete ${cat?.name || 'transaction'}`}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

@@ -64,9 +64,9 @@ export function MobileNav() {
 
   return (
     <>
-      {/* Mobile Bottom Bar (Sticky at bottom, capped height) */}
+      {/* Mobile Bottom Bar (Sticky at bottom, capped height, safe area padding) */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#262626] px-2 py-1.5 flex items-center justify-around"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#262626] px-1 py-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around"
         aria-label="Mobile Navigation"
       >
         {primaryItems.map((item) => {
@@ -76,14 +76,14 @@ export function MobileNav() {
             <button
               key={item.id}
               onClick={() => handleSelectScreen(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-colors duration-150 ${
+              className={`flex-1 min-h-[44px] min-w-[48px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-colors duration-150 ${
                 isActive
                   ? 'text-blue-600 dark:text-blue-400 font-semibold'
                   : 'text-slate-500 dark:text-[#A3A3A3] hover:text-slate-800 dark:hover:text-white'
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-xs mt-0.5 tracking-tight">{item.label}</span>
+              <span className="text-[11px] mt-0.5 tracking-tight font-medium">{item.label}</span>
             </button>
           );
         })}
@@ -91,14 +91,14 @@ export function MobileNav() {
         {/* More Button */}
         <button
           onClick={() => setIsMoreOpen(true)}
-          className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-colors duration-150 relative ${
+          className={`flex-1 min-h-[44px] min-w-[48px] flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-colors duration-150 relative ${
             isMoreOpen || moreItems.some((m) => m.id === currentScreen)
               ? 'text-blue-600 dark:text-blue-400 font-semibold'
               : 'text-slate-500 dark:text-[#A3A3A3]'
           }`}
         >
           <Menu className="w-5 h-5" />
-          <span className="text-xs mt-0.5 tracking-tight">More</span>
+          <span className="text-[11px] mt-0.5 tracking-tight font-medium">More</span>
         </button>
       </nav>
 
@@ -111,20 +111,24 @@ export function MobileNav() {
         >
           <div className="absolute inset-0" onClick={() => setIsMoreOpen(false)} />
 
-          <div className="relative bg-white dark:bg-[#0A0A0A] rounded-t-3xl border-t border-slate-200 dark:border-[#262626] p-6 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#262626]">
+          <div className="relative bg-white dark:bg-[#0A0A0A] rounded-t-3xl border-t border-slate-200 dark:border-[#262626] p-5 pt-3 pb-[max(1.75rem,env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
+            {/* Sheet Handle */}
+            <div className="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3" />
+
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#262626]">
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                 More Features
               </h3>
               <button
                 onClick={() => setIsMoreOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 divide-y divide-slate-100 dark:divide-[#262626] mt-2">
+            <div className="grid grid-cols-1 divide-y divide-slate-100 dark:divide-[#262626] mt-1">
               {moreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentScreen === item.id;
@@ -132,8 +136,8 @@ export function MobileNav() {
                   <button
                     key={item.id}
                     onClick={() => handleSelectScreen(item.id)}
-                    className={`flex items-center justify-between py-3.5 text-left transition-colors duration-150 ${
-                      isActive ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-700 dark:text-slate-200'
+                    className={`flex items-center justify-between py-3 px-2 text-left transition-colors duration-150 min-h-[44px] rounded-xl ${
+                      isActive ? 'text-blue-600 dark:text-blue-400 font-medium bg-blue-50/50 dark:bg-blue-950/30' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#141414]'
                     }`}
                   >
                     <div className="flex items-center gap-3">

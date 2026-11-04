@@ -36,19 +36,19 @@ export function CheckInboxView() {
 
   return (
     <AuthLayout backTo="login" backLabel="Back to login">
-      <div className="bg-white dark:bg-[#0E0E11] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-7 sm:p-9 shadow-sm text-center">
+      <div className="bg-white dark:bg-[#0E0E11] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs w-full text-center">
         {/* Mail Icon */}
-        <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center mb-5">
-          <Mail className="w-7 h-7" />
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center mb-4 sm:mb-5">
+          <Mail className="w-6 h-6 sm:w-7 sm:h-7" />
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
           Check your inbox
         </h1>
 
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto">
           We&apos;ve sent an authentication link to{' '}
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
+          <span className="font-semibold text-slate-800 dark:text-slate-200 break-all">
             {authEmail || 'your email address'}
           </span>
           . Click the link to complete verification or reset your password.
@@ -65,7 +65,7 @@ export function CheckInboxView() {
           <button
             type="button"
             onClick={() => setCurrentScreen('reset-password')}
-            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs"
+            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
           >
             <span>Proceed to set new password</span>
             <ArrowRight className="w-4 h-4" />
@@ -75,7 +75,7 @@ export function CheckInboxView() {
             type="button"
             disabled={countdown > 0 || resending}
             onClick={handleResend}
-            className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5 min-h-[44px]"
           >
             <RotateCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
             <span>
@@ -88,7 +88,7 @@ export function CheckInboxView() {
           <button
             type="button"
             onClick={() => setCurrentScreen('login')}
-            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors py-2 min-h-[40px]"
           >
             Back to login
           </button>

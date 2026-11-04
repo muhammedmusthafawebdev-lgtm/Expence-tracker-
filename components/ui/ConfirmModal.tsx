@@ -103,7 +103,7 @@ export function ConfirmModal({
 
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
+            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#141414] transition-colors duration-150"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4" />
@@ -115,7 +115,7 @@ export function ConfirmModal({
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white transition-colors duration-150 disabled:opacity-50"
+            className="px-4 py-2.5 min-h-[42px] text-xs font-semibold text-slate-600 dark:text-[#A3A3A3] hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors duration-150 disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -124,7 +124,7 @@ export function ConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={isPending}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-colors duration-150 active:scale-95 disabled:opacity-50 ${confirmColors[variant]}`}
+            className={`px-5 py-2.5 min-h-[42px] text-xs font-semibold rounded-xl transition-colors duration-150 active:scale-95 disabled:opacity-50 ${confirmColors[variant]}`}
           >
             {isPending ? 'Processing...' : confirmLabel}
           </button>

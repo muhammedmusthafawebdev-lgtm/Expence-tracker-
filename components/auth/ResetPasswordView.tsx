@@ -39,9 +39,9 @@ export function ResetPasswordView() {
 
   return (
     <AuthLayout backTo="login" backLabel="Back to login">
-      <div className="bg-white dark:bg-[#0E0E11] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-7 sm:p-9 shadow-sm">
-        <div className="mb-7 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+      <div className="bg-white dark:bg-[#0E0E11] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xs w-full">
+        <div className="mb-6 text-center">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-1.5">
             Set new password
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -74,7 +74,7 @@ export function ResetPasswordView() {
             <button
               type="button"
               onClick={() => setCurrentScreen('login')}
-              className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs"
+              className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
             >
               <span>Return to Login</span>
               <ArrowRight className="w-4 h-4" />
@@ -94,12 +94,12 @@ export function ResetPasswordView() {
                   placeholder="At least 8 characters"
                   autoComplete="new-password"
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white pr-10"
+                  className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white pr-10 min-h-[44px]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-2 min-w-[40px] min-h-[40px] flex items-center justify-center"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -119,7 +119,7 @@ export function ResetPasswordView() {
                   placeholder="Re-enter new password"
                   autoComplete="new-password"
                   required
-                  className={`w-full px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-900/80 border focus:outline-none focus:ring-2 transition-all text-slate-900 dark:text-white pr-10 ${
+                  className={`w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border focus:outline-none focus:ring-2 transition-all text-slate-900 dark:text-white pr-10 min-h-[44px] ${
                     passwordsMismatch
                       ? 'border-red-300 dark:border-red-800 focus:ring-red-500'
                       : passwordsMatch
@@ -139,7 +139,7 @@ export function ResetPasswordView() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-60 transition-all duration-150 flex items-center justify-center gap-2 shadow-xs"
+              className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-60 transition-all duration-150 flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
             >
               {loading ? (
                 <>
@@ -157,7 +157,7 @@ export function ResetPasswordView() {
           <button
             type="button"
             onClick={() => setCurrentScreen('login')}
-            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors py-2 min-h-[40px]"
           >
             Back to login
           </button>

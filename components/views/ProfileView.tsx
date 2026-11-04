@@ -189,24 +189,25 @@ export function ProfileView() {
       {/* Edit Profile Modal */}
       {isEditing && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-2xl p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#262626]">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#262626] shadow-2xl p-5 sm:p-6 max-h-[88dvh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#262626] shrink-0">
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                 Update Student Profile
               </h3>
               <button
                 onClick={() => setIsEditing(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white min-w-[36px] min-h-[36px] flex items-center justify-center"
+                aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4 mt-4">
+            <form onSubmit={handleSave} className="space-y-4 mt-3 flex-1 overflow-y-auto pr-1">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-[#A3A3A3] mb-1">
                   Full Name
@@ -216,7 +217,7 @@ export function ProfileView() {
                   placeholder="e.g., Aarav Sharma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[42px]"
                 />
               </div>
 
@@ -227,7 +228,7 @@ export function ProfileView() {
                 <select
                   value={studentType}
                   onChange={(e) => setStudentType(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[42px]"
                 >
                   <option value="College Undergraduate">College Undergraduate</option>
                   <option value="Hostel / PG Resident">Hostel / PG Resident</option>
@@ -246,7 +247,7 @@ export function ProfileView() {
                   placeholder="e.g., IIT Bombay / Delhi University"
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[42px]"
                 />
               </div>
 
@@ -259,7 +260,7 @@ export function ProfileView() {
                   placeholder="e.g., 2026-CS-042"
                   value={rollNumber}
                   onChange={(e) => setRollNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3 py-2 text-base sm:text-xs bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[42px]"
                 />
               </div>
 
@@ -272,21 +273,21 @@ export function ProfileView() {
                   placeholder="e.g., 8000"
                   value={monthlyAllowanceStr}
                   onChange={(e) => setMonthlyAllowanceStr(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold tabular-nums bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-3 py-2 text-base sm:text-xs font-semibold tabular-nums bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#262626] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 min-h-[42px]"
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-[#262626]">
+              <div className="pt-3 pb-1 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-[#262626] shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-[#A3A3A3]"
+                  className="px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-[#A3A3A3] min-h-[40px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors min-h-[40px]"
                 >
                   Save Profile
                 </button>

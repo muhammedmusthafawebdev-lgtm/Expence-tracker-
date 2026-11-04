@@ -399,12 +399,10 @@ export function CircularExpenseChart({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Donut Chart Visualizer (5 columns on large screen) */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            <div className="relative w-[260px] h-[260px] flex items-center justify-center select-none">
+            <div className="relative w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] max-w-full flex items-center justify-center select-none">
               <svg
-                width={size}
-                height={size}
                 viewBox={`0 0 ${size} ${size}`}
-                className="transform -rotate-90 origin-center overflow-visible"
+                className="w-full h-full transform -rotate-90 origin-center overflow-visible"
               >
                 {/* Background Track Circle */}
                 <circle
