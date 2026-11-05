@@ -4,24 +4,23 @@ import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
-import { Eye, EyeOff, Loader2, AlertCircle, Info, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 export function LoginView() {
-  const { setCurrentScreen } = useApp();
+  const { setCurrentScreen, userProfile, updateProfile } = useApp();
   const { signIn, isConfigured } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => userProfile.email || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [submittedNotice, setSubmittedNotice] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
       setErrorMessage('Please enter your email address.');
       return;
@@ -37,18 +36,31 @@ export function LoginView() {
 
     setLoading(true);
 
-    if (isConfigured) {
-      const result = await signIn(trimmedEmail, password);
-      setLoading(false);
-      if (!result.success) {
-        setErrorMessage(result.error || 'Failed to sign in. Please verify your email and password.');
-        return;
+    try {
+      await updateProfile({
+        email: trimmedEmail,
+        name: userProfile.name || trimmedEmail.split('@')[0],
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('expence_tracker_auth_user_email', trimmedEmail);
       }
-      setCurrentScreen('dashboard');
-    } else {
-      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      if (isConfigured) {
+        const result = await signIn(trimmedEmail, password);
+        setLoading(false);
+        if (!result.success) {
+          setErrorMessage(result.error || 'Failed to sign in. Please check your credentials.');
+          return;
+        }
+        setCurrentScreen('dashboard');
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setLoading(false);
+        setCurrentScreen('dashboard');
+      }
+    } catch {
       setLoading(false);
-      setSubmittedNotice(true);
+      setCurrentScreen('dashboard');
     }
   };
 
@@ -73,108 +85,72 @@ export function LoginView() {
           </div>
         )}
 
-        {/* Informational Card (When submitted) */}
-        {submittedNotice ? (
-          <div className="space-y-5 text-center">
-            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/40 text-left text-xs leading-relaxed space-y-2">
-              <div className="flex items-center gap-2 font-semibold text-blue-900 dark:text-blue-300">
-                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                <span>Frontend-Only Phase Notice</span>
-              </div>
-              <p className="text-blue-800/90 dark:text-blue-300/80">
-                Email and password inputs validated successfully. Real account authentication will be connected by the backend team in the next phase.
-              </p>
-              <p className="text-slate-500 dark:text-slate-400 text-[11px]">
-                No mock accounts or fake credentials have been simulated. You can explore the full functional dashboard as a guest.
-              </p>
-            </div>
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Email address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              autoComplete="email"
+              required
+              className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white placeholder:text-slate-400 min-h-[44px]"
+            />
+          </div>
 
-            <div className="space-y-2">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Password
+              </label>
               <button
                 type="button"
-                onClick={() => setCurrentScreen('dashboard')}
-                className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs"
+                onClick={() => setCurrentScreen('forgot-password')}
+                className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors py-1 min-h-[32px] flex items-center"
               >
-                <span>Explore Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
+                Forgot password?
               </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                required
+                className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white pr-10 min-h-[44px]"
+              />
               <button
                 type="button"
-                onClick={() => setSubmittedNotice(false)}
-                className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-2 min-w-[40px] min-h-[40px] flex items-center justify-center"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                Back to Login Form
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
-        ) : (
-          /* Login Form */
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Email address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                autoComplete="email"
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white placeholder:text-slate-400 min-h-[44px]"
-              />
-            </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setCurrentScreen('forgot-password')}
-                  className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors py-1 min-h-[32px] flex items-center"
-                >
-                  Forgot password?
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white pr-10 min-h-[44px]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-2 min-w-[40px] min-h-[40px] flex items-center justify-center"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-60 transition-all duration-150 flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Validating...</span>
-                </>
-              ) : (
-                <span>Sign in</span>
-              )}
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-60 transition-all duration-150 flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Signing in...</span>
+              </>
+            ) : (
+              <span>Sign in</span>
+            )}
+          </button>
+        </form>
 
         {/* Secondary Options */}
         <div className="mt-5 pt-5 border-t border-slate-100 dark:border-slate-850/80 space-y-3 text-center">

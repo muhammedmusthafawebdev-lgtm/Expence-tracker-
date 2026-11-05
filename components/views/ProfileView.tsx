@@ -194,10 +194,15 @@ export function ProfileView() {
         </div>
 
         <div className="flex items-center gap-2">
-          {user ? (
+          {(user || userProfile.email) ? (
             <button
               onClick={async () => {
                 await signOut();
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('expence_tracker_auth_user_email');
+                  localStorage.removeItem('expence_tracker_profile_v3');
+                }
+                await updateProfile({ email: '', name: '' });
                 setCurrentScreen('welcome');
               }}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl transition-colors duration-150 border border-red-200/60 dark:border-red-900/60"

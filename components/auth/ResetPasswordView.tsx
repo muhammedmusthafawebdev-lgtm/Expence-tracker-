@@ -71,17 +71,14 @@ export function ResetPasswordView() {
 
         {submittedNotice ? (
           <div className="space-y-5 text-center">
-            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/40 text-left text-xs leading-relaxed space-y-2">
-              <div className="flex items-center gap-2 font-semibold text-blue-900 dark:text-blue-300">
-                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                <span>Frontend-Only Phase Notice</span>
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/40 text-left text-xs leading-relaxed flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-slate-900 dark:text-white">Password Updated</p>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Your new password has been set. You can now use your updated credentials to log in.
+                </p>
               </div>
-              <p className="text-blue-800/90 dark:text-blue-300/80">
-                Password format and confirmation match verified successfully. In the backend phase, Supabase Auth will update your actual account credentials.
-              </p>
-              <p className="text-slate-500 dark:text-slate-400 text-[11px]">
-                No mock password updates were saved to storage.
-              </p>
             </div>
 
             <button

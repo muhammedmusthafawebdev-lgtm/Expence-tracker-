@@ -12,6 +12,8 @@ import {
   DashboardWidgetId,
   AppScreen,
   FinancialSummary,
+  Debt,
+  DebtSummary,
 } from '@/types';
 import { dataProvider } from '@/services/data-provider';
 import { useAuth } from './AuthContext';
@@ -36,9 +38,11 @@ interface AppContextType {
   budgets: Budget[];
   savingsGoals: SavingsGoal[];
   userProfile: UserProfile;
+  debts: Debt[];
 
   // Calculations
   financialSummary: FinancialSummary;
+  debtSummary: DebtSummary;
 
   // Dashboard Customization
   widgets: DashboardWidgetItem[];
@@ -93,6 +97,39 @@ interface AppContextType {
     type: 'deposit' | 'withdrawal',
     note?: string
   ) => Promise<{ success: boolean; warningMessage: string }>;
+
+  // Debts (Money Lent & Repayments)
+  submitDebt: (data: {
+    personName: string;
+    phoneNumber?: string;
+    principalAmountPaise: number;
+    lentDate: string;
+    expectedRepaymentDate?: string;
+    description?: string;
+  }) => Promise<{ success: boolean; warningMessage: string }>;
+  updateDebt: (
+    id: string,
+    data: Partial<{
+      personName: string;
+      phoneNumber: string;
+      principalAmountPaise: number;
+      lentDate: string;
+      expectedRepaymentDate: string;
+      description: string;
+    }>
+  ) => Promise<{ success: boolean; warningMessage: string }>;
+  deleteDebt: (id: string) => Promise<boolean>;
+  submitDebtRepayment: (
+    debtId: string,
+    amountPaise: number,
+    repaymentDate: string,
+    note?: string
+  ) => Promise<{ success: boolean; warningMessage: string }>;
+  deleteDebtRepayment: (
+    repaymentId: string,
+    debtId: string
+  ) => Promise<{ success: boolean; warningMessage: string }>;
+  reloadDebts: () => Promise<void>;
 
   // Categories
   addCustomCategory: (data: Omit<Category, 'id' | 'isCustom'>) => Promise<Category>;
@@ -207,6 +244,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: '',
     email: '',
@@ -279,15 +317,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const { user } = useAuth();
 
+  const reloadDebts = async () => {
+    try {
+      const dList = await dataProvider.getDebts();
+      setDebts(dList);
+    } catch (err) {
+      console.error('Error reloading debts:', err);
+    }
+  };
+
   const reloadAppData = async () => {
     try {
-      const [txs, delTxs, cats, bgs, goals, profile] = await Promise.all([
+      const [txs, delTxs, cats, bgs, goals, profile, dList] = await Promise.all([
         dataProvider.getTransactions(),
         dataProvider.getRecentlyDeleted(),
         dataProvider.getCategories(),
         dataProvider.getBudgets(),
         dataProvider.getSavingsGoals(),
         dataProvider.getUserProfile(),
+        dataProvider.getDebts(),
       ]);
 
       setTransactions(txs);
@@ -296,6 +344,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setBudgets(bgs);
       setSavingsGoals(goals);
       setUserProfile(profile);
+      setDebts(dList);
     } catch (err) {
       console.error('Error reloading app data:', err);
     }
@@ -307,13 +356,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     async function loadData() {
       try {
-        const [txs, delTxs, cats, bgs, goals, profile] = await Promise.all([
+        const [txs, delTxs, cats, bgs, goals, profile, dList] = await Promise.all([
           dataProvider.getTransactions(),
           dataProvider.getRecentlyDeleted(),
           dataProvider.getCategories(),
           dataProvider.getBudgets(),
           dataProvider.getSavingsGoals(),
           dataProvider.getUserProfile(),
+          dataProvider.getDebts(),
         ]);
 
         if (isMounted) {
@@ -322,7 +372,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setCategories(cats);
           setBudgets(bgs);
           setSavingsGoals(goals);
-          setUserProfile(profile);
+
+          // Restore email from Supabase user or localStorage
+          let savedEmail = user?.email || profile.email;
+          if (!savedEmail && typeof window !== 'undefined') {
+            savedEmail = localStorage.getItem('expence_tracker_auth_user_email') || '';
+          }
+
+          const mergedProfile: UserProfile = {
+            ...profile,
+            email: savedEmail || profile.email,
+            name: profile.name || (savedEmail ? savedEmail.split('@')[0] : profile.name),
+          };
+          setUserProfile(mergedProfile);
+          setDebts(dList);
+
+          // If a Supabase session is established, navigate from any auth view to the dashboard
+          if (user) {
+            setCurrentScreen((prev) => {
+              const authScreens: AppScreen[] = [
+                'welcome',
+                'login',
+                'signup',
+                'forgot-password',
+                'reset-password',
+                'magic-link',
+                'check-inbox',
+              ];
+              return authScreens.includes(prev) ? 'dashboard' : prev;
+            });
+          }
         }
       } catch (err) {
         console.error('Error reloading app data:', err);
@@ -457,6 +536,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [transactions, savingsGoals]);
 
+  // Debt Summary (Asset Receivables)
+  const debtSummary = useMemo<DebtSummary>(() => {
+    const totalLentPaise = debts.reduce((sum, d) => sum + d.principalAmountPaise, 0);
+    const totalRepaidPaise = debts.reduce((sum, d) => sum + d.totalRepaidPaise, 0);
+    const totalOutstandingPaise = debts.reduce((sum, d) => sum + d.outstandingBalancePaise, 0);
+    const settledCount = debts.filter((d) => d.status === 'settled').length;
+    const activeCount = debts.length - settledCount;
+    return {
+      totalLentPaise,
+      totalRepaidPaise,
+      totalOutstandingPaise,
+      activeCount,
+      settledCount,
+    };
+  }, [debts]);
+
   // Submit Transaction (Create or Update)
   const submitTransaction = async (
     data: Omit<Transaction, 'id' | 'createdAt' | 'deletedAt'>,
@@ -579,6 +674,85 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { success: res.success, warningMessage: res.warningMessage };
   };
 
+  // Debts (Money Lent & Repayments)
+  const submitDebt = async (data: {
+    personName: string;
+    phoneNumber?: string;
+    principalAmountPaise: number;
+    lentDate: string;
+    expectedRepaymentDate?: string;
+    description?: string;
+  }) => {
+    const res = await dataProvider.createDebt(data);
+    const updated = await dataProvider.getDebts();
+    setDebts(updated);
+    showNotice(
+      res.success ? 'Debt Recorded' : 'Action Incomplete',
+      res.warningMessage || `Recorded money lent to ${data.personName}.`,
+      res.success ? 'info' : 'warning'
+    );
+    return { success: res.success, warningMessage: res.warningMessage };
+  };
+
+  const updateDebt = async (
+    id: string,
+    data: Partial<{
+      personName: string;
+      phoneNumber: string;
+      principalAmountPaise: number;
+      lentDate: string;
+      expectedRepaymentDate: string;
+      description: string;
+    }>
+  ) => {
+    const res = await dataProvider.updateDebt(id, data);
+    const updated = await dataProvider.getDebts();
+    setDebts(updated);
+    showNotice(
+      res.success ? 'Debt Updated' : 'Update Failed',
+      res.warningMessage || 'Debt record updated successfully.',
+      res.success ? 'info' : 'warning'
+    );
+    return { success: res.success, warningMessage: res.warningMessage };
+  };
+
+  const deleteDebt = async (id: string) => {
+    const success = await dataProvider.deleteDebt(id);
+    const updated = await dataProvider.getDebts();
+    setDebts(updated);
+    showNotice('Debt Deleted', 'The debt record and all its repayments were removed.', 'info');
+    return success;
+  };
+
+  const submitDebtRepayment = async (
+    debtId: string,
+    amountPaise: number,
+    repaymentDate: string,
+    note?: string
+  ) => {
+    const res = await dataProvider.addDebtRepayment(debtId, amountPaise, repaymentDate, note);
+    const updated = await dataProvider.getDebts();
+    setDebts(updated);
+    showNotice(
+      res.success ? 'Repayment Recorded' : 'Repayment Failed',
+      res.warningMessage || 'Repayment has been recorded and balance updated.',
+      res.success ? 'info' : 'warning'
+    );
+    return { success: res.success, warningMessage: res.warningMessage };
+  };
+
+  const deleteDebtRepayment = async (repaymentId: string, debtId: string) => {
+    const res = await dataProvider.deleteDebtRepayment(repaymentId, debtId);
+    const updated = await dataProvider.getDebts();
+    setDebts(updated);
+    showNotice(
+      res.success ? 'Repayment Removed' : 'Action Failed',
+      res.warningMessage || 'Repayment entry removed and balance adjusted.',
+      res.success ? 'info' : 'warning'
+    );
+    return { success: res.success, warningMessage: res.warningMessage };
+  };
+
   const addCustomCategory = async (data: Omit<Category, 'id' | 'isCustom'>) => {
     const newCat = await dataProvider.addCustomCategory(data);
     const updated = await dataProvider.getCategories();
@@ -651,8 +825,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         categories,
         budgets,
         savingsGoals,
+        debts,
         userProfile,
         financialSummary,
+        debtSummary,
         widgets,
         moveWidget,
         toggleWidgetPin,
@@ -676,6 +852,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         submitSavingsGoal,
         deleteSavingsGoal,
         submitSavingsAllocation,
+        submitDebt,
+        updateDebt,
+        deleteDebt,
+        submitDebtRepayment,
+        deleteDebtRepayment,
+        reloadDebts,
         addCustomCategory,
         updateCategory,
         deleteCategory,

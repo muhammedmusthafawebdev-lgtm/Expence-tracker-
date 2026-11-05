@@ -4,6 +4,9 @@ import {
   SavingsGoal,
   Category,
   UserProfile,
+  Debt,
+  DebtRepayment,
+  DebtStatus,
 } from '@/types';
 import { IDataProvider, TransactionFilters } from '@/services/data-provider';
 import { getSupabase } from './client';
@@ -16,6 +19,8 @@ type SavingsGoalRow = Database['public']['Tables']['savings_goals']['Row'];
 type SavingsAllocRow = Database['public']['Tables']['savings_allocations']['Row'];
 type CategoryRow = Database['public']['Tables']['categories']['Row'];
 type UserProfileRow = Database['public']['Tables']['user_profiles']['Row'];
+type DebtRow = Database['public']['Tables']['debts']['Row'];
+type DebtRepaymentRow = Database['public']['Tables']['debt_repayments']['Row'];
 
 export class SupabaseDataProvider implements IDataProvider {
   public readonly isBackendConnected = true;
@@ -877,5 +882,484 @@ export class SupabaseDataProvider implements IDataProvider {
       monthlyAllowancePaise: Number(row.monthly_allowance_paise || 0),
       currency: (row.currency as 'INR') || 'INR',
     };
+  }
+
+  // =========================================================================
+  // DEBTS & REPAYMENTS (ASSET RECEIVABLES)
+  // Strictly independent from ordinary expense/income analytics
+  // =========================================================================
+  async getDebts(): Promise<Debt[]> {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) return [];
+
+    try {
+      const userId = await this.getUserId();
+      const { data: debtRows, error: debtsErr } = await supabase
+        .from('debts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('lent_date', { ascending: false });
+
+      if (debtsErr) {
+        if (this.isSchemaCacheError(debtsErr)) {
+          this.handleSchemaCacheNotice('debts');
+        } else {
+          console.warn('Unable to load Supabase debts:', debtsErr.message);
+        }
+        return [];
+      }
+
+      const { data: repRows, error: repErr } = await supabase
+        .from('debt_repayments')
+        .select('*')
+        .eq('user_id', userId)
+        .order('repayment_date', { ascending: false });
+
+      if (repErr && this.isSchemaCacheError(repErr)) {
+        this.handleSchemaCacheNotice('debt_repayments');
+      }
+
+      const debtsList = (debtRows || []) as unknown as DebtRow[];
+      const repaymentsList = (repRows || []) as unknown as DebtRepaymentRow[];
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      return debtsList.map((d) => {
+        const debtRepayments: DebtRepayment[] = repaymentsList
+          .filter((r) => r.debt_id === d.id)
+          .map((r) => ({
+            id: r.id,
+            debtId: r.debt_id,
+            amountPaise: Number(r.amount_paise),
+            repaymentDate: r.repayment_date,
+            note: r.note || undefined,
+            createdAt: r.created_at,
+          }));
+
+        const principalPaise = Number(d.principal_amount_paise);
+        const totalRepaidPaise = debtRepayments.reduce((sum, r) => sum + r.amountPaise, 0);
+        const outstandingBalancePaise = Math.max(0, principalPaise - totalRepaidPaise);
+
+        let dynamicStatus: DebtStatus = d.status;
+        if (outstandingBalancePaise === 0) {
+          dynamicStatus = 'settled';
+        } else if (d.expected_repayment_date && d.expected_repayment_date < todayStr) {
+          dynamicStatus = 'overdue';
+        } else if (totalRepaidPaise > 0) {
+          dynamicStatus = 'partially_repaid';
+        } else {
+          dynamicStatus = 'active';
+        }
+
+        return {
+          id: d.id,
+          personName: d.person_name,
+          phoneNumber: d.phone_number || undefined,
+          principalAmountPaise: principalPaise,
+          lentDate: d.lent_date,
+          expectedRepaymentDate: d.expected_repayment_date || undefined,
+          description: d.description || undefined,
+          status: dynamicStatus,
+          repayments: debtRepayments,
+          totalRepaidPaise,
+          outstandingBalancePaise,
+          outstandingPaise: outstandingBalancePaise,
+          phone: d.phone_number || undefined,
+          createdAt: d.created_at,
+          updatedAt: d.updated_at,
+        };
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  async createDebt(data: {
+    personName: string;
+    phoneNumber?: string;
+    principalAmountPaise: number;
+    lentDate: string;
+    expectedRepaymentDate?: string;
+    description?: string;
+  }) {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) {
+      return {
+        success: false,
+        persisted: false,
+        warningMessage: 'Supabase database tables are not provisioned yet.',
+      };
+    }
+
+    try {
+      const userId = await this.getUserId();
+      const principal = Math.round(data.principalAmountPaise);
+      if (principal <= 0) {
+        return {
+          success: false,
+          persisted: false,
+          warningMessage: 'Principal amount must be greater than zero.',
+        };
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const status: DebtStatus =
+        data.expectedRepaymentDate && data.expectedRepaymentDate < todayStr ? 'overdue' : 'active';
+
+      const insertPayload = {
+        user_id: userId,
+        person_name: data.personName.trim(),
+        phone_number: data.phoneNumber?.trim() || null,
+        principal_amount_paise: principal,
+        lent_date: data.lentDate,
+        expected_repayment_date: data.expectedRepaymentDate || null,
+        description: data.description?.trim() || null,
+        status,
+      };
+
+      const { data: inserted, error } = await supabase
+        .from('debts')
+        .insert(insertPayload as any)
+        .select()
+        .single();
+
+      if (error) {
+        if (this.isSchemaCacheError(error)) {
+          this.handleSchemaCacheNotice('debts');
+        }
+        throw error;
+      }
+
+      const row = inserted as unknown as DebtRow;
+      const newDebt: Debt = {
+        id: row.id,
+        personName: row.person_name,
+        phoneNumber: row.phone_number || undefined,
+        principalAmountPaise: Number(row.principal_amount_paise),
+        lentDate: row.lent_date,
+        expectedRepaymentDate: row.expected_repayment_date || undefined,
+        description: row.description || undefined,
+        status: row.status,
+        repayments: [],
+        totalRepaidPaise: 0,
+        outstandingBalancePaise: Number(row.principal_amount_paise),
+        outstandingPaise: Number(row.principal_amount_paise),
+        phone: row.phone_number || undefined,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+
+      return {
+        success: true,
+        persisted: true,
+        item: newDebt,
+        warningMessage: '',
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save debt record';
+      return {
+        success: false,
+        persisted: false,
+        warningMessage: msg,
+      };
+    }
+  }
+
+  async updateDebt(
+    id: string,
+    data: Partial<{
+      personName: string;
+      phoneNumber: string;
+      phone: string;
+      principalAmountPaise: number;
+      lentDate: string;
+      expectedRepaymentDate: string;
+      description: string;
+    }>
+  ) {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) {
+      return {
+        success: false,
+        persisted: false,
+        warningMessage: 'Supabase database tables are not provisioned yet.',
+      };
+    }
+
+    try {
+      const userId = await this.getUserId();
+
+      // Retrieve existing debt and repayments to validate updates
+      const { data: existing, error: fetchErr } = await supabase
+        .from('debts')
+        .select('*, debt_repayments(*)')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchErr || !existing) throw new Error('Debt record not found');
+
+      const repayments = ((existing as any).debt_repayments || []) as DebtRepaymentRow[];
+      const totalRepaid = repayments.reduce((sum, r) => sum + Number(r.amount_paise), 0);
+
+      const updatePayload: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+
+      let principal = Number(existing.principal_amount_paise);
+      if (data.principalAmountPaise !== undefined) {
+        principal = Math.round(data.principalAmountPaise);
+        if (principal < totalRepaid) {
+          return {
+            success: false,
+            persisted: false,
+            warningMessage: `Principal amount cannot be lower than existing repayments of ₹${(totalRepaid / 100).toFixed(2)}.`,
+          };
+        }
+        updatePayload.principal_amount_paise = principal;
+      }
+
+      if (data.personName !== undefined) updatePayload.person_name = data.personName.trim();
+      if (data.phoneNumber !== undefined) updatePayload.phone_number = data.phoneNumber.trim() || null;
+      if (data.lentDate !== undefined) updatePayload.lent_date = data.lentDate;
+      if (data.expectedRepaymentDate !== undefined) {
+        updatePayload.expected_repayment_date = data.expectedRepaymentDate || null;
+      }
+      if (data.description !== undefined) updatePayload.description = data.description.trim() || null;
+
+      // Recalculate status
+      const expectedDate =
+        data.expectedRepaymentDate !== undefined
+          ? data.expectedRepaymentDate
+          : existing.expected_repayment_date;
+      const outstanding = Math.max(0, principal - totalRepaid);
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      let newStatus: DebtStatus = 'active';
+      if (outstanding === 0) {
+        newStatus = 'settled';
+      } else if (expectedDate && expectedDate < todayStr) {
+        newStatus = 'overdue';
+      } else if (totalRepaid > 0) {
+        newStatus = 'partially_repaid';
+      }
+      updatePayload.status = newStatus;
+
+      const { data: updated, error: updateErr } = await supabase
+        .from('debts')
+        .update(updatePayload as any)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (updateErr) throw updateErr;
+
+      const row = updated as unknown as DebtRow;
+      const mappedRepayments: DebtRepayment[] = repayments.map((r) => ({
+        id: r.id,
+        debtId: r.debt_id,
+        amountPaise: Number(r.amount_paise),
+        repaymentDate: r.repayment_date,
+        note: r.note || undefined,
+        createdAt: r.created_at,
+      }));
+
+      const debtItem: Debt = {
+        id: row.id,
+        personName: row.person_name,
+        phoneNumber: row.phone_number || undefined,
+        principalAmountPaise: Number(row.principal_amount_paise),
+        lentDate: row.lent_date,
+        expectedRepaymentDate: row.expected_repayment_date || undefined,
+        description: row.description || undefined,
+        status: row.status,
+        repayments: mappedRepayments,
+        totalRepaidPaise: totalRepaid,
+        outstandingBalancePaise: outstanding,
+        outstandingPaise: outstanding,
+        phone: row.phone_number || undefined,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+
+      return {
+        success: true,
+        persisted: true,
+        item: debtItem,
+        warningMessage: '',
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update debt record';
+      return { success: false, persisted: false, warningMessage: msg };
+    }
+  }
+
+  async deleteDebt(id: string): Promise<boolean> {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) return false;
+    try {
+      const userId = await this.getUserId();
+      const { error } = await supabase
+        .from('debts')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  async addDebtRepayment(
+    debtId: string,
+    amountPaise: number,
+    repaymentDate: string,
+    note?: string
+  ) {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) {
+      return {
+        success: false,
+        persisted: false,
+        warningMessage: 'Supabase database tables are not provisioned yet.',
+      };
+    }
+
+    try {
+      const userId = await this.getUserId();
+      const roundedAmount = Math.round(amountPaise);
+      if (roundedAmount <= 0) {
+        return {
+          success: false,
+          persisted: false,
+          warningMessage: 'Repayment amount must be greater than zero.',
+        };
+      }
+
+      const { data: debt, error: debtErr } = await supabase
+        .from('debts')
+        .select('*, debt_repayments(*)')
+        .eq('id', debtId)
+        .eq('user_id', userId)
+        .single();
+
+      if (debtErr || !debt) throw new Error('Debt record not found');
+
+      const existingRepayments = ((debt as any).debt_repayments || []) as DebtRepaymentRow[];
+      const alreadyRepaid = existingRepayments.reduce((sum, r) => sum + Number(r.amount_paise), 0);
+      const principal = Number(debt.principal_amount_paise);
+      const outstanding = Math.max(0, principal - alreadyRepaid);
+
+      if (roundedAmount > outstanding) {
+        return {
+          success: false,
+          persisted: false,
+          warningMessage: `Repayment amount exceeds remaining outstanding balance of ₹${(outstanding / 100).toFixed(2)}.`,
+        };
+      }
+
+      const { error: repInsertErr } = await supabase
+        .from('debt_repayments')
+        .insert({
+          debt_id: debtId,
+          user_id: userId,
+          amount_paise: roundedAmount,
+          repayment_date: repaymentDate,
+          note: note?.trim() || null,
+        } as any);
+
+      if (repInsertErr) throw repInsertErr;
+
+      const newTotalRepaid = alreadyRepaid + roundedAmount;
+      const newOutstanding = Math.max(0, principal - newTotalRepaid);
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      let newStatus: DebtStatus = 'active';
+      if (newOutstanding === 0) {
+        newStatus = 'settled';
+      } else if (debt.expected_repayment_date && debt.expected_repayment_date < todayStr) {
+        newStatus = 'overdue';
+      } else if (newTotalRepaid > 0) {
+        newStatus = 'partially_repaid';
+      }
+
+      await supabase
+        .from('debts')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', debtId)
+        .eq('user_id', userId);
+
+      return {
+        success: true,
+        persisted: true,
+        warningMessage: '',
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to record repayment';
+      return { success: false, persisted: false, warningMessage: msg };
+    }
+  }
+
+  async deleteDebtRepayment(repaymentId: string, debtId: string) {
+    const supabase = getSupabase();
+    if (!supabase || !this._isSchemaReady) {
+      return { success: false, persisted: false, warningMessage: 'Supabase is not configured.' };
+    }
+
+    try {
+      const userId = await this.getUserId();
+      const { error: delErr } = await supabase
+        .from('debt_repayments')
+        .delete()
+        .eq('id', repaymentId)
+        .eq('user_id', userId);
+
+      if (delErr) throw delErr;
+
+      const { data: debt } = await supabase
+        .from('debts')
+        .select('*, debt_repayments(*)')
+        .eq('id', debtId)
+        .eq('user_id', userId)
+        .single();
+
+      if (debt) {
+        const remainingReps = ((debt as any).debt_repayments || []) as DebtRepaymentRow[];
+        const totalRepaid = remainingReps.reduce((sum, r) => sum + Number(r.amount_paise), 0);
+        const principal = Number(debt.principal_amount_paise);
+        const outstanding = Math.max(0, principal - totalRepaid);
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        let newStatus: DebtStatus = 'active';
+        if (outstanding === 0) {
+          newStatus = 'settled';
+        } else if (debt.expected_repayment_date && debt.expected_repayment_date < todayStr) {
+          newStatus = 'overdue';
+        } else if (totalRepaid > 0) {
+          newStatus = 'partially_repaid';
+        }
+
+        await supabase
+          .from('debts')
+          .update({
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq('id', debtId)
+          .eq('user_id', userId);
+      }
+
+      return {
+        success: true,
+        persisted: true,
+        warningMessage: '',
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete repayment';
+      return { success: false, persisted: false, warningMessage: msg };
+    }
   }
 }

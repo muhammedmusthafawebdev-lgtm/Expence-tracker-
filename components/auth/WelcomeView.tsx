@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Sliders,
   PiggyBank,
+  HandCoins,
 } from 'lucide-react';
 
 export function WelcomeView() {
@@ -35,10 +36,10 @@ export function WelcomeView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        <nav aria-label="Account Navigation" className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           <button
             onClick={toggleTheme}
-            aria-label="Toggle theme"
+            aria-label="Toggle visual theme"
             className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -46,22 +47,22 @@ export function WelcomeView() {
 
           <button
             onClick={() => setCurrentScreen('login')}
-            className="text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-colors duration-150"
+            className="text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-colors duration-150 min-h-[40px] flex items-center"
           >
             Log in
           </button>
 
           <button
             onClick={() => setCurrentScreen('signup')}
-            className="text-xs sm:text-sm font-medium bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 shadow-xs"
+            className="text-xs sm:text-sm font-medium bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 shadow-xs min-h-[40px] flex items-center"
           >
             Get started
           </button>
-        </div>
+        </nav>
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-14 pb-8 sm:pb-12 flex flex-col items-center text-center">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-14 pb-8 sm:pb-12 flex flex-col items-center text-center">
         {/* Primary Headline */}
         <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white mb-3 sm:mb-5 max-w-2xl leading-[1.12] text-balance">
           Your money. <br />
@@ -70,7 +71,7 @@ export function WelcomeView() {
 
         {/* Supporting Text */}
         <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-lg mb-7 sm:mb-9 leading-relaxed font-normal px-2">
-          Track income, manage expenses, and understand where your money goes with complete clarity.
+          Track income, manage categorized expenses, set period budgets, and monitor savings goals with precision financial clarity.
         </p>
 
         {/* Action CTAs */}
@@ -91,47 +92,66 @@ export function WelcomeView() {
           </button>
         </div>
 
-        {/* 3 Core Feature Pillars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5 w-full text-left max-w-4xl">
-          {/* Feature 1 */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
-              Cash Flow Tracking
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Record daily expenses and income with clean categorization and instant balance insights.
-            </p>
-          </div>
+        {/* 4 Core Feature Pillars with Semantic H2 Section */}
+        <section aria-labelledby="features-heading" className="w-full max-w-5xl">
+          <h2 id="features-heading" className="sr-only">
+            Personal Finance &amp; Budget Management Features
+          </h2>
 
-          {/* Feature 2 */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
-              <Sliders className="w-4 h-4" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 w-full text-left">
+            {/* Feature 1 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
+                Cash Flow Tracking
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Record daily expenses and income with clean categorization and instant balance insights.
+              </p>
             </div>
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
-              Smart Budgets
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Set monthly and yearly category caps to keep spending disciplined with proactive threshold alerts.
-            </p>
-          </div>
 
-          {/* Feature 3 */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
-              <PiggyBank className="w-4 h-4" />
+            {/* Feature 2 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
+                <Sliders className="w-4 h-4" />
+              </div>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
+                Smart Budgets
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Set monthly and yearly category caps to keep spending disciplined with proactive threshold alerts.
+              </p>
             </div>
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
-              Savings Goals
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Set targets for milestones and future expenses, tracking allocations toward your targets.
-            </p>
+
+            {/* Feature 3 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
+                <PiggyBank className="w-4 h-4" />
+              </div>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
+                Savings Goals
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Set targets for milestones and future expenses, tracking allocations toward your targets.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3">
+                <HandCoins className="w-4 h-4" />
+              </div>
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
+                Debt &amp; Money Lent
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Track money lent to others with repayment schedules without distorting operating cash flow.
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
 
       {/* Clean Minimalist Footer */}

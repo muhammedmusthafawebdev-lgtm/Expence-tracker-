@@ -127,6 +127,7 @@ export type AppScreen =
   | 'categories'
   | 'budget'
   | 'savings'
+  | 'debt'
   | 'reports'
   | 'profile'
   | 'settings'
@@ -140,4 +141,42 @@ export interface FinancialSummary {
   netBalancePaise: number;
   savingsAllocatedPaise: number;
   availableBalancePaise: number;
+}
+
+export type DebtStatus = 'active' | 'partially_repaid' | 'overdue' | 'settled';
+
+export interface DebtRepayment {
+  id: string;
+  debtId: string;
+  amountPaise: number; // Stored as integer paise (BIGINT)
+  repaymentDate: string; // YYYY-MM-DD
+  note?: string;
+  notes?: string; // Ergonomic alias
+  createdAt: string;
+}
+
+export interface Debt {
+  id: string;
+  personName: string;
+  phoneNumber?: string;
+  phone?: string; // Ergonomic alias for UI components
+  principalAmountPaise: number; // Stored as integer paise (BIGINT)
+  lentDate: string; // YYYY-MM-DD
+  expectedRepaymentDate?: string; // YYYY-MM-DD
+  description?: string;
+  status: DebtStatus;
+  repayments: DebtRepayment[];
+  totalRepaidPaise: number;
+  outstandingBalancePaise: number;
+  outstandingPaise: number; // Ergonomic alias
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DebtSummary {
+  totalLentPaise: number;
+  totalRepaidPaise: number;
+  totalOutstandingPaise: number;
+  activeCount: number;
+  settledCount: number;
 }

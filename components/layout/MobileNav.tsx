@@ -16,6 +16,7 @@ import {
   Trash2,
   Tag,
   LogOut,
+  HandCoins,
 } from 'lucide-react';
 import { AppScreen } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -41,6 +42,12 @@ export function MobileNav() {
     badge?: number;
     desc: string;
   }[] = [
+    {
+      id: 'debt',
+      label: 'Debt & Money Lent',
+      icon: HandCoins,
+      desc: 'Track loans to others & repayments',
+    },
     { id: 'categories', label: 'Categories', icon: Tag, desc: 'Manage expense & income categories' },
     {
       id: 'money',

@@ -6,12 +6,14 @@ import { AuthProvider } from '@/context/AuthContext';
 import { AppProvider } from '@/context/AppContext';
 import { AppShell } from '@/components/layout/AppShell';
 import { ScreenRouter } from '@/components/views/ScreenRouter';
+import { RouteSeoManager } from '@/components/seo/RouteSeoManager';
 
 export default function HomePage() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <AppProvider>
+          <RouteSeoManager />
           <AppShell>
             <ScreenRouter />
           </AppShell>

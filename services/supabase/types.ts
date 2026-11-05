@@ -179,6 +179,56 @@ export interface Database {
         };
         Update: Partial<Database['public']['Tables']['savings_allocations']['Row']>;
       };
+      debts: {
+        Row: {
+          id: string;
+          user_id: string;
+          person_name: string;
+          phone_number: string | null;
+          principal_amount_paise: number;
+          lent_date: string;
+          expected_repayment_date: string | null;
+          description: string | null;
+          status: 'active' | 'partially_repaid' | 'overdue' | 'settled';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          person_name: string;
+          phone_number?: string | null;
+          principal_amount_paise: number;
+          lent_date: string;
+          expected_repayment_date?: string | null;
+          description?: string | null;
+          status?: 'active' | 'partially_repaid' | 'overdue' | 'settled';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['debts']['Row']>;
+      };
+      debt_repayments: {
+        Row: {
+          id: string;
+          debt_id: string;
+          user_id: string;
+          amount_paise: number;
+          repayment_date: string;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          debt_id: string;
+          user_id: string;
+          amount_paise: number;
+          repayment_date: string;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['debt_repayments']['Row']>;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

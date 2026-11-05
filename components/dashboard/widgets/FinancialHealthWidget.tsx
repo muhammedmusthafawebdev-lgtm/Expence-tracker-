@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { formatINR, calculateFinancialHealth } from '@/lib/calculations/financial';
-import { ShieldCheck, HeartPulse, Sparkles, AlertCircle, Activity } from 'lucide-react';
+import { ShieldCheck, HeartPulse, Scale, AlertCircle, Activity } from 'lucide-react';
 
 interface FinancialHealthWidgetProps {
   periodIncomePaise: number;
@@ -104,7 +104,7 @@ export function FinancialHealthWidget({
           <div className="p-3.5 bg-slate-50/70 dark:bg-[#141414] rounded-xl border border-slate-100 dark:border-[#1f1f1f]">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-slate-500 dark:text-[#A3A3A3]">Spend-to-Income</span>
-              <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+              <Scale className="w-3.5 h-3.5 text-purple-500" />
             </div>
             <div className="text-xl font-bold text-slate-900 dark:text-white mt-1 tabular-nums">
               {health.spendingRatio}%

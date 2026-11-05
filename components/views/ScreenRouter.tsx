@@ -20,6 +20,7 @@ import { ReportsView } from '@/components/views/ReportsView';
 import { ProfileView } from '@/components/views/ProfileView';
 import { SettingsView } from '@/components/views/SettingsView';
 import { RecentlyDeletedView } from '@/components/views/RecentlyDeletedView';
+import { DebtView } from '@/components/views/DebtView';
 
 export function ScreenRouter() {
   const { currentScreen } = useApp();
@@ -46,6 +47,8 @@ export function ScreenRouter() {
         return <MoneyDashboardView />;
       case 'transactions':
         return <TransactionsView />;
+      case 'debt':
+        return <DebtView />;
       case 'categories':
         return <CategoriesView />;
       case 'budget':

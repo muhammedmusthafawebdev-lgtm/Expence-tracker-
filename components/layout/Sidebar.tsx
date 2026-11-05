@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Tag,
   LogOut,
+  HandCoins,
 } from 'lucide-react';
 import { AppScreen } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -29,6 +30,7 @@ export function Sidebar() {
     toggleSidebar,
     deletedTransactions,
     userProfile,
+    updateProfile,
   } = useApp();
   const { user, signOut } = useAuth();
 
@@ -42,6 +44,7 @@ export function Sidebar() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'money', label: 'Money Overview', icon: CircleDollarSign },
     { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight },
+    { id: 'debt', label: 'Debt', icon: HandCoins },
     { id: 'categories', label: 'Categories', icon: Tag },
     { id: 'budget', label: 'Budgets', icon: PieChart },
     { id: 'savings', label: 'Savings', icon: PiggyBank },
@@ -168,10 +171,15 @@ export function Sidebar() {
             )}
           </button>
 
-          {!isSidebarCollapsed && user && (
+          {!isSidebarCollapsed && (user || userProfile.email) && (
             <button
               onClick={async () => {
                 await signOut();
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('expence_tracker_auth_user_email');
+                  localStorage.removeItem('expence_tracker_profile_v3');
+                }
+                await updateProfile({ email: '', name: '' });
                 setCurrentScreen('welcome');
               }}
               title="Sign Out"
