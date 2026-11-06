@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { getSupabase, isSupabaseConfigured, getAuthRedirectUrl } from '@/services/supabase/client';
 
@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isConfigured = isSupabaseConfigured();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const sessionRef = useRef(session);
   const [loading, setLoading] = useState<boolean>(() => isConfigured);
   const [authEmail, setAuthEmail] = useState<string>('');
   const [authNotice, setAuthNotice] = useState<string | null>(() => {
@@ -60,6 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return null;
   });
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   const clearAuthNotice = useCallback(() => {
     setAuthNotice(null);
@@ -81,56 +86,130 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const type = url.searchParams.get('type') as any;
 
       if (code) {
-        // Exchange PKCE authorization code for session
-        supabase.auth
-          .exchangeCodeForSession(code)
-          .then(({ data, error }) => {
-            if (!isSubscribed) return;
-            if (error) {
-              setAuthNotice(`Authentication code exchange failed: ${error.message}`);
-            } else if (data.session) {
-              setSession(data.session);
-              setUser(data.user);
-            }
-          })
-          .catch((err: unknown) => {
-            if (!isSubscribed) return;
-            const message = err instanceof Error ? err.message : 'Failed to verify auth code.';
-            setAuthNotice(message);
-          })
-          .finally(() => {
-            if (isSubscribed) {
-              url.searchParams.delete('code');
-              window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
-              setLoading(false);
-            }
-          });
+        // Enforce exact-once PKCE exchange guard (prevents duplicate runs from React StrictMode or re-renders)
+        const sessionKey = `pkce_exchanged_${code}`;
+        let alreadyExchanged = false;
+        try {
+          alreadyExchanged = Boolean(sessionStorage.getItem(sessionKey));
+          if (!alreadyExchanged) {
+            sessionStorage.setItem(sessionKey, 'true');
+          }
+        } catch {
+          // Ignore storage quota/permission restrictions
+        }
+
+        // Clean query parameter from address bar immediately to prevent secondary triggers
+        url.searchParams.delete('code');
+        window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+
+        if (!alreadyExchanged) {
+          supabase.auth
+            .exchangeCodeForSession(code)
+            .then(({ data, error }) => {
+              if (!isSubscribed) return;
+              if (error) {
+                const errMsg = error.message.toLowerCase();
+                if (errMsg.includes('already') || errMsg.includes('flow state not found') || errMsg.includes('invalid grant')) {
+                  // Reused, expired, or duplicate code: report friendly notice unless session already restored
+                  if (!sessionRef.current) {
+                    setAuthNotice('This login link has expired or has already been used. Please request a new magic link.');
+                  }
+                } else if (errMsg.includes('network') || errMsg.includes('failed to fetch')) {
+                  // Transient network error: allow retry on reload
+                  try {
+                    sessionStorage.removeItem(sessionKey);
+                  } catch {
+                    // Ignore
+                  }
+                  setAuthNotice('Network connection issue while verifying login code. Please check your connection and retry.');
+                } else {
+                  setAuthNotice('Unable to authenticate with this link. It may be invalid or expired.');
+                }
+              } else if (data.session) {
+                setSession(data.session);
+                setUser(data.user);
+              }
+            })
+            .catch((err: unknown) => {
+              if (!isSubscribed) return;
+              // Transient exception: clear sessionKey to allow legitimate retry
+              try {
+                sessionStorage.removeItem(sessionKey);
+              } catch {
+                // Ignore
+              }
+              if (!sessionRef.current) {
+                const message = err instanceof Error ? err.message : 'Authentication network request failed.';
+                setAuthNotice(`Network error during authentication verification: ${message}`);
+              }
+            })
+            .finally(() => {
+              if (isSubscribed) {
+                setLoading(false);
+              }
+            });
+        }
       } else if (tokenHash && type) {
-        // Verify token_hash OTP
-        supabase.auth
-          .verifyOtp({ token_hash: tokenHash, type })
-          .then(({ data, error }) => {
-            if (!isSubscribed) return;
-            if (error) {
-              setAuthNotice(`Verification link failed: ${error.message}`);
-            } else if (data.session) {
-              setSession(data.session);
-              setUser(data.user);
-            }
-          })
-          .catch((err: unknown) => {
-            if (!isSubscribed) return;
-            const message = err instanceof Error ? err.message : 'Failed to verify token.';
-            setAuthNotice(message);
-          })
-          .finally(() => {
-            if (isSubscribed) {
-              url.searchParams.delete('token_hash');
-              url.searchParams.delete('type');
-              window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
-              setLoading(false);
-            }
-          });
+        // Enforce exact-once OTP verification guard
+        const tokenKey = `token_verified_${tokenHash}`;
+        let alreadyVerified = false;
+        try {
+          alreadyVerified = Boolean(sessionStorage.getItem(tokenKey));
+          if (!alreadyVerified) {
+            sessionStorage.setItem(tokenKey, 'true');
+          }
+        } catch {
+          // Ignore storage quota/permission restrictions
+        }
+
+        // Clean query parameters from address bar immediately
+        url.searchParams.delete('token_hash');
+        url.searchParams.delete('type');
+        window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+
+        if (!alreadyVerified) {
+          supabase.auth
+            .verifyOtp({ token_hash: tokenHash, type })
+            .then(({ data, error }) => {
+              if (!isSubscribed) return;
+              if (error) {
+                const errMsg = error.message.toLowerCase();
+                if (errMsg.includes('already') || errMsg.includes('expired')) {
+                  if (!sessionRef.current) {
+                    setAuthNotice('This verification link has expired or has already been used.');
+                  }
+                } else if (errMsg.includes('network') || errMsg.includes('failed to fetch')) {
+                  try {
+                    sessionStorage.removeItem(tokenKey);
+                  } catch {
+                    // Ignore
+                  }
+                  setAuthNotice('Network issue while verifying account. Please refresh to retry.');
+                } else {
+                  setAuthNotice('Verification link is invalid or has expired.');
+                }
+              } else if (data.session) {
+                setSession(data.session);
+                setUser(data.user);
+              }
+            })
+            .catch((err: unknown) => {
+              if (!isSubscribed) return;
+              try {
+                sessionStorage.removeItem(tokenKey);
+              } catch {
+                // Ignore
+              }
+              if (!sessionRef.current) {
+                setAuthNotice('Failed to connect to authentication server. Please check your connection.');
+              }
+            })
+            .finally(() => {
+              if (isSubscribed) {
+                setLoading(false);
+              }
+            });
+        }
       }
     }
 

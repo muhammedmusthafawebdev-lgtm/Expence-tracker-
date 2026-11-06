@@ -66,6 +66,8 @@ async function testAuthSuite() {
   const authContent = fs.readFileSync(authContextPath, 'utf8');
   assert(authContent.includes("exchangeCodeForSession"), 'AuthContext exchanges authorization code for session');
   assert(authContent.includes("verifyOtp"), 'AuthContext supports verifyOtp for token_hash verification');
+  assert(authContent.includes("pkce_exchanged_"), 'Enforces exact-once PKCE exchange guard via deduplication');
+  assert(authContent.includes("token_verified_"), 'Enforces exact-once OTP verification guard via deduplication');
   assert(authContent.includes("signInWithOtp"), 'AuthContext implements signInWithMagicLink with signInWithOtp');
   assert(authContent.includes("signInWithPassword"), 'AuthContext implements signIn with signInWithPassword');
   assert(authContent.includes("signUp"), 'AuthContext implements signUp with full_name metadata');
