@@ -4,13 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
-import { Mail, Loader2, AlertCircle, CheckCircle2, ArrowRight, ExternalLink } from 'lucide-react';
+import { Mail, Loader2, AlertCircle, CheckCircle2, ExternalLink, RotateCw } from 'lucide-react';
 
 export function MagicLinkView() {
   const { setCurrentScreen, userProfile, updateProfile } = useApp();
   const {
     signInWithMagicLink,
-    verifyOtpCode,
     setAuthEmail,
     setAuthMode,
     isConfigured,
@@ -19,9 +18,7 @@ export function MagicLinkView() {
   } = useAuth();
 
   const [email, setEmail] = useState(() => userProfile.email || '');
-  const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sentSuccess, setSentSuccess] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -63,7 +60,7 @@ export function MagicLinkView() {
         return;
       }
 
-      // Update local profile email tracking
+      // Synchronize local profile email
       void updateProfile({
         email: trimmed,
         name: userProfile.name || trimmed.split('@')[0],
@@ -76,41 +73,13 @@ export function MagicLinkView() {
     } catch (err: unknown) {
       setLoading(false);
       setErrorMessage(
-        err instanceof Error ? err.message : 'An unexpected error occurred while sending the magic link.'
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred while sending the magic link.'
       );
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-
-    const cleanCode = otpCode.trim();
-    if (!cleanCode || cleanCode.length < 6) {
-      setErrorMessage('Please enter the 6-digit verification code from your email.');
-      return;
-    }
-
-    setVerifying(true);
-    try {
-      const result = await verifyOtpCode(email.trim().toLowerCase(), cleanCode, 'magiclink');
-      setVerifying(false);
-
-      if (!result.success) {
-        setErrorMessage(result.error || 'Verification code is invalid or has expired.');
-        return;
-      }
-
-      setCurrentScreen('dashboard');
-    } catch (err: unknown) {
-      setVerifying(false);
-      setErrorMessage(
-        err instanceof Error ? err.message : 'An error occurred while verifying the code.'
-      );
-    }
-  };
-
-  // Determine email provider link
   const getEmailProviderLink = (emailAddress: string) => {
     const domain = emailAddress.split('@')[1]?.toLowerCase();
     if (domain === 'gmail.com') return 'https://mail.google.com';
@@ -148,45 +117,18 @@ export function MagicLinkView() {
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/40 text-left flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div className="space-y-1 text-xs">
-                <p className="font-semibold text-slate-900 dark:text-white">Magic link dispatched</p>
+                <p className="font-semibold text-slate-900 dark:text-white">
+                  Magic link dispatched
+                </p>
                 <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  We sent a login link and code to <span className="font-semibold text-slate-900 dark:text-white break-all">{email}</span>. You can tap the link or enter the 6-digit code below.
+                  We sent a login link to{' '}
+                  <span className="font-semibold text-slate-900 dark:text-white break-all">
+                    {email}
+                  </span>
+                  . Click the link in your email to authenticate and enter your account.
                 </p>
               </div>
             </div>
-
-            {/* 6-Digit Code Fallback Form */}
-            <form onSubmit={handleVerifyOtp} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-left">
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                Or enter the 6-digit code from your email:
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
-                  placeholder="123456"
-                  maxLength={8}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  className="flex-1 px-3 py-2 rounded-xl text-center font-mono tracking-widest text-base bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-                />
-                <button
-                  type="submit"
-                  disabled={verifying || otpCode.length < 6}
-                  className="py-2 px-3.5 rounded-xl font-medium text-xs bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 min-h-[40px]"
-                >
-                  {verifying ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Verifying...</span>
-                    </>
-                  ) : (
-                    <span>Verify Code</span>
-                  )}
-                </button>
-              </div>
-            </form>
 
             <div className="space-y-2">
               <a
@@ -201,11 +143,16 @@ export function MagicLinkView() {
 
               <button
                 type="button"
-                disabled={countdown > 0}
+                disabled={countdown > 0 || loading}
                 onClick={handleSubmit}
-                className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-40 transition-colors py-2 min-h-[44px] flex items-center justify-center w-full"
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5 min-h-[44px]"
               >
-                {countdown > 0 ? `Resend magic link in ${countdown}s` : 'Resend magic link email'}
+                <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <span>
+                  {countdown > 0
+                    ? `Resend magic link in ${countdown}s`
+                    : 'Resend magic link email'}
+                </span>
               </button>
             </div>
           </div>

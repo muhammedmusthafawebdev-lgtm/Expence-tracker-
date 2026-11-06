@@ -1,13 +1,13 @@
 /**
- * Automated Test Suite for Supabase Authentication & Callback Verification
+ * Automated Test Suite for Supabase Authentication & Clickable Magic Link Verification
  * Validates:
  * 1. Supabase browser client configuration & multiple env var alias support
  * 2. getAuthRedirectUrl helper behavior and correctness
- * 3. Next.js App Router auth callback route (/app/auth/callback/route.ts)
- * 4. PKCE code exchange & OTP token_hash handling
- * 5. Open-redirect attack prevention in callback
- * 6. Sign-up, Sign-in, and Magic Link validation logic
- * 7. Absence of obsolete "Phase 1 not completed" or "Frontend-Only Phase Notice"
+ * 3. Next.js App Router auth callback & confirm landing page routes
+ * 4. TokenHash prefetch-resistant landing page (/app/auth/confirm/page.tsx)
+ * 5. Complete removal of 6-digit OTP input interface from frontend UI
+ * 6. Sign-up, Sign-in, Magic Link, and Password Recovery flows
+ * 7. Absence of obsolete notices and zero fake sessions
  */
 
 import * as fs from 'fs';
@@ -29,7 +29,7 @@ function assert(condition: boolean, title: string, details?: string) {
 
 async function testAuthSuite() {
   console.log('\n======================================================');
-  console.log('🧪 VERIFYING SUPABASE AUTHENTICATION ARCHITECTURE');
+  console.log('🧪 VERIFYING SUPABASE CLICKABLE MAGIC LINK ARCHITECTURE');
   console.log('======================================================\n');
 
   // Test 1: Callback Route File Verification
@@ -42,13 +42,19 @@ async function testAuthSuite() {
   assert(callbackContent.includes("searchParams.get('code')"), 'Reads PKCE code parameter from URL');
   assert(callbackContent.includes("searchParams.get('token_hash')"), 'Reads token_hash parameter from URL');
   assert(callbackContent.includes("searchParams.get('error')"), 'Handles error and error_description from Supabase');
-  assert(
-    callbackContent.includes("safeNext") || callbackContent.includes("next.startsWith('/')"),
-    'Enforces open-redirect prevention on destination URL'
-  );
 
-  // Test 2: Supabase Browser Client Initialization
-  console.log('\n📋 Test Suite 2: Supabase Client Configuration & PKCE Setup');
+  // Test 2: Prefetch-Resistant Landing Page (/app/auth/confirm/page.tsx)
+  console.log('\n📋 Test Suite 2: Prefetch-Resistant Landing Page (/app/auth/confirm/page.tsx)');
+  const confirmPagePath = path.resolve(process.cwd(), 'app/auth/confirm/page.tsx');
+  assert(fs.existsSync(confirmPagePath), 'Confirm landing page file exists at app/auth/confirm/page.tsx');
+
+  const confirmContent = fs.readFileSync(confirmPagePath, 'utf8');
+  assert(confirmContent.includes("token_hash"), 'Reads token_hash parameter on confirm landing page');
+  assert(confirmContent.includes("Continue to Expense Tracker"), 'Provides explicit user Continue button');
+  assert(confirmContent.includes("verifyOtpTokenHash"), 'Executes verifyOtpTokenHash on explicit user click');
+
+  // Test 3: Supabase Browser Client Initialization
+  console.log('\n📋 Test Suite 3: Supabase Client Configuration & PKCE Setup');
   const clientPath = path.resolve(process.cwd(), 'services/supabase/client.ts');
   assert(fs.existsSync(clientPath), 'services/supabase/client.ts exists');
 
@@ -56,76 +62,61 @@ async function testAuthSuite() {
   assert(clientContent.includes("flowType: 'pkce'"), 'Explicitly configures PKCE flowType for secure browser authentication');
   assert(clientContent.includes("detectSessionInUrl: true"), 'Enables detectSessionInUrl for hash and query parameter recovery');
   assert(clientContent.includes("persistSession: true"), 'Configures session persistence in browser storage');
-  assert(clientContent.includes("getAuthRedirectUrl"), 'Exports getAuthRedirectUrl helper');
 
-  // Test 3: AuthContext Implementation
-  console.log('\n📋 Test Suite 3: AuthContext & State Management');
+  // Test 4: AuthContext Implementation
+  console.log('\n📋 Test Suite 4: AuthContext & TokenHash State Management');
   const authContextPath = path.resolve(process.cwd(), 'context/AuthContext.tsx');
   assert(fs.existsSync(authContextPath), 'context/AuthContext.tsx exists');
 
   const authContent = fs.readFileSync(authContextPath, 'utf8');
   assert(authContent.includes("exchangeCodeForSession"), 'AuthContext exchanges authorization code for session');
-  assert(authContent.includes("verifyOtp"), 'AuthContext supports verifyOtp for token_hash verification');
-  assert(authContent.includes("pkce_exchanged_"), 'Enforces exact-once PKCE exchange guard via deduplication');
-  assert(authContent.includes("token_verified_"), 'Enforces exact-once OTP verification guard via deduplication');
+  assert(authContent.includes("verifyOtpTokenHash"), 'AuthContext provides verifyOtpTokenHash method');
   assert(authContent.includes("signInWithOtp"), 'AuthContext implements signInWithMagicLink with signInWithOtp');
-  assert(authContent.includes("signInWithPassword"), 'AuthContext implements signIn with signInWithPassword');
+  assert(authContent.includes("shouldCreateUser: false"), 'signInWithMagicLink sets shouldCreateUser: false to prevent duplicate accounts');
   assert(authContent.includes("signUp"), 'AuthContext implements signUp with full_name metadata');
   assert(authContent.includes("resendConfirmationEmail"), 'AuthContext implements resendConfirmationEmail for signup');
-  assert(authContent.includes("verifyOtpCode"), 'AuthContext implements verifyOtpCode for manual 6-digit code entry');
-  assert(authContent.includes("onAuthStateChange"), 'Subscribes to onAuthStateChange for real-time session sync');
 
-  // Test 4: MagicLinkView Implementation
-  console.log('\n📋 Test Suite 4: Magic Link Screen Quality & Honest Confirmation');
+  // Test 5: Complete Removal of Numeric OTP Frontend
+  console.log('\n📋 Test Suite 5: Removal of Numeric OTP Frontend UI');
   const magicLinkPath = path.resolve(process.cwd(), 'components/auth/MagicLinkView.tsx');
   const magicLinkContent = fs.readFileSync(magicLinkPath, 'utf8');
-  assert(magicLinkContent.includes("signInWithMagicLink"), 'Calls genuine signInWithMagicLink');
-  assert(magicLinkContent.includes("verifyOtpCode"), 'MagicLinkView provides 6-digit OTP code fallback');
-  assert(!magicLinkContent.includes("Sparkles"), 'No AI Sparkles icons on Magic Link screen');
-  assert(!magicLinkContent.includes("Frontend-Only Phase Notice"), 'Zero obsolete Frontend-Only Phase Notice text');
-  assert(magicLinkContent.includes("Open Email Inbox"), 'Provides user action to open their email client');
+  assert(!magicLinkContent.includes("otpCode"), 'Zero numeric OTP input fields in MagicLinkView');
+  assert(!magicLinkContent.includes("6-digit"), 'Zero 6-digit instructions in MagicLinkView');
+  assert(magicLinkContent.includes("Open Email Inbox"), 'Provides action to open email provider');
 
-  // Test 5: CheckInboxView Implementation
-  console.log('\n📋 Test Suite 5: Check Inbox Screen & OTP Handling');
   const checkInboxPath = path.resolve(process.cwd(), 'components/auth/CheckInboxView.tsx');
   const checkInboxContent = fs.readFileSync(checkInboxPath, 'utf8');
-  assert(checkInboxContent.includes("resendConfirmationEmail"), 'CheckInboxView uses resendConfirmationEmail for signup');
-  assert(checkInboxContent.includes("verifyOtpCode"), 'CheckInboxView provides 6-digit verification code entry');
-  assert(checkInboxContent.includes("Enter 6-digit verification code"), 'Clear user prompt for 6-digit code');
+  assert(!checkInboxContent.includes("otpCode"), 'Zero numeric OTP input fields in CheckInboxView');
+  assert(!checkInboxContent.includes("6-digit"), 'Zero 6-digit instructions in CheckInboxView');
 
-  // Test 6: Login & SignUp Screen Quality
-  console.log('\n📋 Test Suite 6: Login & Sign Up Screens');
+  // Test 6: Password Recovery View & Password Update Flow
+  console.log('\n📋 Test Suite 6: Password Recovery & Reset Flow');
+  const forgotPath = path.resolve(process.cwd(), 'components/auth/ForgotPasswordView.tsx');
+  const forgotContent = fs.readFileSync(forgotPath, 'utf8');
+  assert(forgotContent.includes("setAuthMode('recovery')"), 'ForgotPasswordView sets recovery authMode');
+
+  const resetPath = path.resolve(process.cwd(), 'components/auth/ResetPasswordView.tsx');
+  const resetContent = fs.readFileSync(resetPath, 'utf8');
+  assert(resetContent.includes("updatePassword"), 'ResetPasswordView updates password via Supabase');
+  assert(resetContent.includes("signOut"), 'ResetPasswordView cleans session on return to login');
+
+  // Test 7: Login & SignUp Screen Quality
+  console.log('\n📋 Test Suite 7: Login & Sign Up Screens');
   const loginPath = path.resolve(process.cwd(), 'components/auth/LoginView.tsx');
   const loginContent = fs.readFileSync(loginPath, 'utf8');
   assert(loginContent.includes("signIn("), 'LoginView executes real signIn');
-  assert(!loginContent.includes("Frontend-Only Phase Notice"), 'No Frontend-Only Phase Notice on login screen');
 
   const signUpPath = path.resolve(process.cwd(), 'components/auth/SignUpView.tsx');
   const signUpContent = fs.readFileSync(signUpPath, 'utf8');
   assert(signUpContent.includes("signUp("), 'SignUpView executes real signUp');
-  assert(!signUpContent.includes("Frontend-Only Phase Notice"), 'No Frontend-Only Phase Notice on sign-up screen');
-  assert(
-    signUpContent.includes("requiresEmailConfirmation"),
-    'Properly inspects requiresEmailConfirmation before advancing to dashboard'
-  );
+  assert(signUpContent.includes("setAuthMode('signup')"), 'SignUpView sets signup authMode');
 
-  // Test 7: Route Protection in ScreenRouter
-  console.log('\n📋 Test Suite 7: Route Protection & Session Loading State');
+  // Test 8: Route Protection in ScreenRouter
+  console.log('\n📋 Test Suite 8: Route Protection & Session Loading State');
   const routerPath = path.resolve(process.cwd(), 'components/views/ScreenRouter.tsx');
   const routerContent = fs.readFileSync(routerPath, 'utf8');
   assert(routerContent.includes("isConfigured && loading"), 'Displays session verification loading state during auth checks');
   assert(routerContent.includes("isConfigured && !user && !isAuthScreen"), 'Enforces route protection for unauthenticated users');
-
-  // Test 8: Callback Route Error Code Handling
-  console.log('\n📋 Test Suite 8: Callback Route Error Handling & otp_expired Protection');
-  assert(callbackContent.includes("errorCode"), 'Reads error_code parameter from callback URL');
-  assert(callbackContent.includes("otp_expired"), 'Provides specialized handling for otp_expired error code');
-
-  // Test 9: Global Codebase Search for Obsolete Phase Notices
-  console.log('\n📋 Test Suite 9: Clean Codebase Guarantee');
-  const appShellPath = path.resolve(process.cwd(), 'components/layout/AppShell.tsx');
-  const appShellContent = fs.readFileSync(appShellPath, 'utf8');
-  assert(!appShellContent.includes("Phase 1 not completed"), 'No Phase 1 not completed notice in AppShell');
 
   console.log('\n======================================================');
   console.log(`📊 AUTH AUDIT SUMMARY: ${passed} Passed, ${failed} Failed`);

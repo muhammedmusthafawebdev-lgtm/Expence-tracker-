@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
-import { Mail, RotateCw, ExternalLink, Loader2, AlertCircle, KeyRound } from 'lucide-react';
+import { Mail, RotateCw, ExternalLink, AlertCircle } from 'lucide-react';
 
 export function CheckInboxView() {
   const { setCurrentScreen } = useApp();
@@ -14,12 +14,9 @@ export function CheckInboxView() {
     resendConfirmationEmail,
     resetPasswordForEmail,
     signInWithMagicLink,
-    verifyOtpCode,
     isConfigured,
   } = useAuth();
 
-  const [otpCode, setOtpCode] = useState<string>('');
-  const [verifying, setVerifying] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(60);
   const [resending, setResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
@@ -31,45 +28,6 @@ export function CheckInboxView() {
       return () => clearTimeout(timer);
     }
   }, [countdown]);
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-
-    const cleanCode = otpCode.trim();
-    if (!cleanCode || cleanCode.length < 6) {
-      setErrorMessage('Please enter the 6-digit verification code from your email.');
-      return;
-    }
-
-    if (!authEmail) {
-      setErrorMessage('Email address missing. Please return to login and try again.');
-      return;
-    }
-
-    setVerifying(true);
-    try {
-      const targetType = authMode === 'signup' ? 'signup' : authMode === 'recovery' ? 'recovery' : 'magiclink';
-      const result = await verifyOtpCode(authEmail, cleanCode, targetType);
-      setVerifying(false);
-
-      if (!result.success) {
-        setErrorMessage(result.error || 'Verification code is invalid or has expired.');
-        return;
-      }
-
-      if (authMode === 'recovery') {
-        setCurrentScreen('reset-password');
-      } else {
-        setCurrentScreen('dashboard');
-      }
-    } catch (err: unknown) {
-      setVerifying(false);
-      setErrorMessage(
-        err instanceof Error ? err.message : 'An error occurred while verifying the code.'
-      );
-    }
-  };
 
   const handleResend = async () => {
     if (countdown > 0 || resending) return;
@@ -104,7 +62,7 @@ export function CheckInboxView() {
 
     setResending(false);
     setCountdown(60);
-    setResendStatus('A new confirmation email has been dispatched to your inbox.');
+    setResendStatus('A new authentication email has been dispatched to your inbox.');
   };
 
   const getEmailProviderLink = (emailAddress: string) => {
@@ -129,11 +87,11 @@ export function CheckInboxView() {
         </h1>
 
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto">
-          We&apos;ve sent an authentication link and code to{' '}
+          We&apos;ve sent an authentication link to{' '}
           <span className="font-semibold text-slate-800 dark:text-slate-200 break-all">
             {authEmail || 'your email address'}
           </span>
-          . You can click the link in your email or enter your 6-digit code below.
+          . Please click the link inside your email to authenticate and enter your account.
         </p>
 
         {errorMessage && (
@@ -148,45 +106,6 @@ export function CheckInboxView() {
             {resendStatus}
           </div>
         )}
-
-        {/* 6-Digit Code Entry Fallback */}
-        <form onSubmit={handleVerifyOtp} className="mb-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-left">
-          <div className="flex items-center gap-2 mb-2">
-            <KeyRound className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-            <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-              Enter 6-digit verification code
-            </label>
-          </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">
-            If your email link expired or was pre-scanned by your mail app, enter the numeric code here.
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
-              placeholder="123456"
-              maxLength={8}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              className="flex-1 px-3.5 py-2 rounded-xl text-center font-mono tracking-widest text-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
-            />
-            <button
-              type="submit"
-              disabled={verifying || otpCode.length < 6}
-              className="py-2 px-4 rounded-xl font-medium text-xs bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 min-h-[44px]"
-            >
-              {verifying ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Verifying...</span>
-                </>
-              ) : (
-                <span>Verify Code</span>
-              )}
-            </button>
-          </div>
-        </form>
 
         <div className="space-y-3 mb-6">
           <a

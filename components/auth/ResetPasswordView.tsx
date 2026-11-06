@@ -8,7 +8,7 @@ import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Info, ArrowRight } fro
 
 export function ResetPasswordView() {
   const { setCurrentScreen } = useApp();
-  const { updatePassword, isConfigured } = useAuth();
+  const { updatePassword, signOut, isConfigured } = useAuth();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -83,7 +83,10 @@ export function ResetPasswordView() {
 
             <button
               type="button"
-              onClick={() => setCurrentScreen('login')}
+              onClick={async () => {
+                await signOut();
+                setCurrentScreen('login');
+              }}
               className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
             >
               <span>Return to Login</span>

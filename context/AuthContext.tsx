@@ -43,6 +43,13 @@ interface AuthContextType {
     success: boolean;
     error?: string;
   }>;
+  verifyOtpTokenHash: (
+    tokenHash: string,
+    type?: 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite'
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
   resetPasswordForEmail: (email: string) => Promise<{
     success: boolean;
     error?: string;
@@ -267,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const redirectUrl = getAuthRedirectUrl('/auth/callback');
+      const redirectUrl = getAuthRedirectUrl('/auth/confirm?type=signup');
 
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -358,13 +365,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const redirectUrl = getAuthRedirectUrl('/auth/callback');
+      const redirectUrl = getAuthRedirectUrl('/auth/confirm');
 
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
           emailRedirectTo: redirectUrl,
-          shouldCreateUser: true,
+          shouldCreateUser: false,
         },
       });
 
@@ -392,7 +399,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const redirectUrl = getAuthRedirectUrl('/auth/callback');
+      const redirectUrl = getAuthRedirectUrl('/auth/confirm?type=signup');
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email.trim(),
@@ -432,15 +439,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!cleanToken || cleanToken.length < 6) {
       return {
         success: false,
-        error: 'Please enter a valid 6-digit verification code.',
+        error: 'Please enter a valid verification code.',
       };
     }
 
     try {
+      // Explicitly map verification types: 'recovery' for password reset, 'signup' for confirmation, 'magiclink' or 'email'
+      const otpType =
+        type === 'recovery'
+          ? 'recovery'
+          : type === 'signup'
+          ? 'signup'
+          : type === 'magiclink'
+          ? 'magiclink'
+          : 'email';
+
       const { data, error } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token: cleanToken,
-        type: type as any,
+        type: otpType as any,
       });
 
       if (error) {
@@ -474,6 +491,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const verifyOtpTokenHash = async (
+    tokenHash: string,
+    type: 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' = 'email'
+  ) => {
+    const supabase = getSupabase();
+    if (!supabase) {
+      return {
+        success: false,
+        error:
+          'Supabase credentials are not configured in environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.',
+      };
+    }
+
+    const cleanHash = tokenHash.trim();
+    if (!cleanHash) {
+      return {
+        success: false,
+        error: 'Invalid authentication link parameter.',
+      };
+    }
+
+    try {
+      const otpType =
+        type === 'recovery'
+          ? 'recovery'
+          : type === 'signup'
+          ? 'signup'
+          : type === 'magiclink'
+          ? 'magiclink'
+          : 'email';
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: cleanHash,
+        type: otpType as any,
+      });
+
+      if (error) {
+        if (otpType !== 'email') {
+          const fallback = await supabase.auth.verifyOtp({
+            token_hash: cleanHash,
+            type: 'email',
+          });
+          if (!fallback.error && (fallback.data.session || fallback.data.user)) {
+            if (fallback.data.session) {
+              setSession(fallback.data.session);
+              setUser(fallback.data.user);
+            }
+            return { success: true };
+          }
+        }
+        return { success: false, error: error.message };
+      }
+
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.user);
+      } else if (data.user) {
+        setUser(data.user);
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to verify token link.',
+      };
+    }
+  };
+
   const resetPasswordForEmail = async (email: string) => {
     const supabase = getSupabase();
     if (!supabase) {
@@ -484,7 +570,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const redirectUrl = getAuthRedirectUrl('/auth/callback?next=/&view=reset-password');
+      const redirectUrl = getAuthRedirectUrl('/auth/confirm?type=recovery');
 
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: redirectUrl,
@@ -561,6 +647,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithMagicLink,
         resendConfirmationEmail,
         verifyOtpCode,
+        verifyOtpTokenHash,
         resetPasswordForEmail,
         updatePassword,
         signOut,
