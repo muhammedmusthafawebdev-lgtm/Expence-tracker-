@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
@@ -8,17 +8,19 @@ import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 export function LoginView() {
   const { setCurrentScreen, userProfile, updateProfile } = useApp();
-  const { signIn, isConfigured } = useAuth();
+  const { signIn, isConfigured, authNotice, clearAuthNotice } = useAuth();
 
   const [email, setEmail] = useState(() => userProfile.email || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const displayError = errorMessage || authNotice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    clearAuthNotice();
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) {
@@ -34,33 +36,36 @@ export function LoginView() {
       return;
     }
 
+    if (!isConfigured) {
+      setErrorMessage(
+        'Supabase is not configured in this environment. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to sign in.'
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await updateProfile({
+      const result = await signIn(trimmedEmail, password);
+      setLoading(false);
+
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to sign in. Please verify your credentials.');
+        return;
+      }
+
+      // Synchronize profile email
+      void updateProfile({
         email: trimmedEmail,
         name: userProfile.name || trimmedEmail.split('@')[0],
       });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('expence_tracker_auth_user_email', trimmedEmail);
-      }
 
-      if (isConfigured) {
-        const result = await signIn(trimmedEmail, password);
-        setLoading(false);
-        if (!result.success) {
-          setErrorMessage(result.error || 'Failed to sign in. Please check your credentials.');
-          return;
-        }
-        setCurrentScreen('dashboard');
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        setLoading(false);
-        setCurrentScreen('dashboard');
-      }
-    } catch {
-      setLoading(false);
       setCurrentScreen('dashboard');
+    } catch (err: unknown) {
+      setLoading(false);
+      setErrorMessage(
+        err instanceof Error ? err.message : 'An unexpected error occurred during sign in.'
+      );
     }
   };
 
@@ -78,10 +83,10 @@ export function LoginView() {
         </div>
 
         {/* Error Alert */}
-        {errorMessage && (
+        {displayError && (
           <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-start gap-2.5 text-xs text-red-700 dark:text-red-400">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">{errorMessage}</div>
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
+            <div className="leading-relaxed">{displayError}</div>
           </div>
         )}
 

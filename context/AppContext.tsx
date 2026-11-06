@@ -21,6 +21,7 @@ import {
   calculateNetBalance,
   calculateAvailableBalance,
 } from '@/lib/calculations/financial';
+import { isSupabaseConfigured } from '@/services/supabase/client';
 
 interface AppContextType {
   // Navigation
@@ -373,16 +374,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setBudgets(bgs);
           setSavingsGoals(goals);
 
-          // Restore email from Supabase user or localStorage
-          let savedEmail = user?.email || profile.email;
-          if (!savedEmail && typeof window !== 'undefined') {
-            savedEmail = localStorage.getItem('expence_tracker_auth_user_email') || '';
-          }
-
+          // Synchronize profile email with authenticated user
+          const finalEmail = user?.email || (!isSupabaseConfigured() ? profile.email : '');
           const mergedProfile: UserProfile = {
             ...profile,
-            email: savedEmail || profile.email,
-            name: profile.name || (savedEmail ? savedEmail.split('@')[0] : profile.name),
+            email: finalEmail,
+            name: profile.name || (finalEmail ? finalEmail.split('@')[0] : 'Student'),
           };
           setUserProfile(mergedProfile);
           setDebts(dList);

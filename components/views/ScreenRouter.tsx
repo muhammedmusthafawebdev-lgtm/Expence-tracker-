@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { Loader2 } from 'lucide-react';
 import { WelcomeView } from '@/components/auth/WelcomeView';
 import { LoginView } from '@/components/auth/LoginView';
 import { SignUpView } from '@/components/auth/SignUpView';
@@ -22,8 +24,37 @@ import { SettingsView } from '@/components/views/SettingsView';
 import { RecentlyDeletedView } from '@/components/views/RecentlyDeletedView';
 import { DebtView } from '@/components/views/DebtView';
 
+const AUTH_SCREENS = new Set([
+  'welcome',
+  'login',
+  'signup',
+  'forgot-password',
+  'reset-password',
+  'magic-link',
+  'check-inbox',
+]);
+
 export function ScreenRouter() {
   const { currentScreen } = useApp();
+  const { user, loading, isConfigured } = useAuth();
+
+  // If Supabase is configured and currently resolving an authentication check/callback, display a loading screen
+  if (isConfigured && loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-7 h-7 animate-spin text-blue-600 dark:text-blue-400 mb-3" />
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          Verifying secure session...
+        </p>
+      </div>
+    );
+  }
+
+  // Route protection: If Supabase is connected and user is unauthenticated attempting to view private ledger data
+  const isAuthScreen = AUTH_SCREENS.has(currentScreen);
+  if (isConfigured && !user && !isAuthScreen) {
+    return <LoginView />;
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {

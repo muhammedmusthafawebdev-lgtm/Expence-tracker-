@@ -4,17 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
-import { Mail, Loader2, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Mail, Loader2, AlertCircle, CheckCircle2, ArrowRight, ExternalLink } from 'lucide-react';
 
 export function MagicLinkView() {
   const { setCurrentScreen, userProfile, updateProfile } = useApp();
-  const { signInWithMagicLink, isConfigured } = useAuth();
+  const { signInWithMagicLink, isConfigured, authNotice, clearAuthNotice } = useAuth();
 
   const [email, setEmail] = useState(() => userProfile.email || '');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sentSuccess, setSentSuccess] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const displayError = errorMessage || authNotice;
 
   useEffect(() => {
     if (countdown > 0) {
@@ -26,6 +27,7 @@ export function MagicLinkView() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    clearAuthNotice();
 
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
@@ -33,56 +35,48 @@ export function MagicLinkView() {
       return;
     }
 
+    if (!isConfigured) {
+      setErrorMessage(
+        'Supabase credentials are not configured in environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable live email delivery.'
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Save user email to profile and session storage
-      await updateProfile({
-        email: trimmed,
-        name: userProfile.name || trimmed.split('@')[0],
-      });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('expence_tracker_auth_user_email', trimmed);
-      }
-
-      if (isConfigured) {
-        const result = await signInWithMagicLink(trimmed);
-        setLoading(false);
-        if (!result.success) {
-          // If Supabase failed to send email (e.g., SMTP rate limit or configuration issue),
-          // don't leave user stranded: allow dashboard entry directly with saved session
-          setErrorMessage(result.error || 'Notice: Email delivery service is pending. You can still open your dashboard directly.');
-          setSentSuccess(true);
-          setCountdown(60);
-          return;
-        }
-        setSentSuccess(true);
-        setCountdown(60);
-      } else {
-        // Fast response for standalone mode
-        await new Promise((resolve) => setTimeout(resolve, 250));
-        setLoading(false);
-        setSentSuccess(true);
-        setCountdown(60);
-      }
-    } catch {
+      const result = await signInWithMagicLink(trimmed);
       setLoading(false);
-      setSentSuccess(true);
-    }
-  };
 
-  const handleOpenDashboard = () => {
-    const trimmed = email.trim().toLowerCase();
-    if (trimmed) {
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to dispatch magic link. Please try again.');
+        return;
+      }
+
+      // Update local profile email tracking
       void updateProfile({
         email: trimmed,
         name: userProfile.name || trimmed.split('@')[0],
       });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('expence_tracker_auth_user_email', trimmed);
-      }
+
+      setSentSuccess(true);
+      setCountdown(60);
+    } catch (err: unknown) {
+      setLoading(false);
+      setErrorMessage(
+        err instanceof Error ? err.message : 'An unexpected error occurred while sending the magic link.'
+      );
     }
-    setCurrentScreen('dashboard');
+  };
+
+  // Determine email provider link
+  const getEmailProviderLink = (emailAddress: string) => {
+    const domain = emailAddress.split('@')[1]?.toLowerCase();
+    if (domain === 'gmail.com') return 'https://mail.google.com';
+    if (domain === 'outlook.com' || domain === 'hotmail.com') return 'https://outlook.live.com';
+    if (domain === 'yahoo.com') return 'https://mail.yahoo.com';
+    if (domain === 'icloud.com') return 'https://www.icloud.com/mail';
+    return `mailto:${emailAddress}`;
   };
 
   return (
@@ -97,14 +91,14 @@ export function MagicLinkView() {
             Sign in with Magic Link
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Enter your email to sign in without remembering a password.
+            We&apos;ll send a passwordless login link directly to your inbox.
           </p>
         </div>
 
-        {errorMessage && (
-          <div className="mb-5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-            <div className="leading-relaxed">{errorMessage}</div>
+        {displayError && (
+          <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-start gap-2.5 text-xs text-red-700 dark:text-red-400">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
+            <div className="leading-relaxed">{displayError}</div>
           </div>
         )}
 
@@ -113,33 +107,32 @@ export function MagicLinkView() {
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/40 text-left flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <div className="space-y-1 text-xs">
-                <p className="font-semibold text-slate-900 dark:text-white">Account Ready</p>
+                <p className="font-semibold text-slate-900 dark:text-white">Magic link dispatched</p>
                 <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Session initialized for <span className="font-semibold text-slate-900 dark:text-white break-all">{email}</span>. Click below to enter your dashboard.
+                  We sent a login link to <span className="font-semibold text-slate-900 dark:text-white break-all">{email}</span>. Click the link in your email to authenticate.
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <button
-                type="button"
-                onClick={handleOpenDashboard}
+              <a
+                href={getEmailProviderLink(email)}
+                target="_blank"
+                rel="noreferrer noopener"
                 className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
               >
-                <span>Open Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                <span>Open Email Inbox</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
 
-              {isConfigured && (
-                <button
-                  type="button"
-                  disabled={countdown > 0}
-                  onClick={handleSubmit}
-                  className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-40 transition-colors py-2 min-h-[44px] flex items-center justify-center w-full"
-                >
-                  {countdown > 0 ? `Resend link in ${countdown}s` : 'Resend magic link email'}
-                </button>
-              )}
+              <button
+                type="button"
+                disabled={countdown > 0}
+                onClick={handleSubmit}
+                className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-40 transition-colors py-2 min-h-[44px] flex items-center justify-center w-full"
+              >
+                {countdown > 0 ? `Resend magic link in ${countdown}s` : 'Resend magic link email'}
+              </button>
             </div>
           </div>
         ) : (
@@ -152,7 +145,7 @@ export function MagicLinkView() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="muhammedmusthafawebdev@gmail.com"
+                placeholder="name@example.com"
                 autoComplete="email"
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl text-base sm:text-sm bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all text-slate-900 dark:text-white placeholder:text-slate-400 min-h-[44px]"
@@ -167,10 +160,10 @@ export function MagicLinkView() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Connecting...</span>
+                  <span>Dispatching link...</span>
                 </>
               ) : (
-                <span>Continue to Dashboard</span>
+                <span>Send Magic Link</span>
               )}
             </button>
           </form>

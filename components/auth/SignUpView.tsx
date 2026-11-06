@@ -63,38 +63,42 @@ export function SignUpView() {
       return;
     }
 
+    if (!isConfigured) {
+      setErrorMessage(
+        'Supabase is not configured in this environment. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to register accounts.'
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await updateProfile({
+      const result = await signUp(trimmedEmail, password, trimmedName);
+      setLoading(false);
+
+      if (!result.success) {
+        setErrorMessage(result.error || 'Failed to create account.');
+        return;
+      }
+
+      setAuthEmail(trimmedEmail);
+      void updateProfile({
         name: trimmedName,
         email: trimmedEmail,
       });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('expence_tracker_auth_user_email', trimmedEmail);
-      }
 
-      if (isConfigured) {
-        const result = await signUp(trimmedEmail, password, trimmedName);
-        setLoading(false);
-        if (!result.success) {
-          setErrorMessage(result.error || 'Failed to create account.');
-          return;
-        }
-        setAuthEmail(trimmedEmail);
-        if (result.requiresEmailConfirmation) {
-          setCurrentScreen('check-inbox');
-        } else {
-          setCurrentScreen('dashboard');
-        }
+      // If email confirmation is required by Supabase, show check-inbox screen
+      // Do NOT redirect to dashboard before authentication is established
+      if (result.requiresEmailConfirmation) {
+        setCurrentScreen('check-inbox');
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        setLoading(false);
         setCurrentScreen('dashboard');
       }
-    } catch {
+    } catch (err: unknown) {
       setLoading(false);
-      setCurrentScreen('dashboard');
+      setErrorMessage(
+        err instanceof Error ? err.message : 'An unexpected error occurred during signup.'
+      );
     }
   };
 
@@ -114,7 +118,7 @@ export function SignUpView() {
         {/* Error Alert */}
         {errorMessage && (
           <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-start gap-2.5 text-xs text-red-700 dark:text-red-400">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
             <div className="leading-relaxed">{errorMessage}</div>
           </div>
         )}
@@ -236,7 +240,7 @@ export function SignUpView() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Creating account...</span>
+                <span>Registering account...</span>
               </>
             ) : (
               <span>Create account</span>

@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
-import { Mail, ArrowRight, RotateCw } from 'lucide-react';
+import { Mail, RotateCw, ExternalLink } from 'lucide-react';
 
 export function CheckInboxView() {
   const { setCurrentScreen } = useApp();
-  const { authEmail, resetPasswordForEmail, isConfigured } = useAuth();
+  const { authEmail, resetPasswordForEmail, signInWithMagicLink, isConfigured } = useAuth();
 
   const [countdown, setCountdown] = useState<number>(60);
   const [resending, setResending] = useState(false);
@@ -27,11 +27,20 @@ export function CheckInboxView() {
     setResendStatus(null);
 
     if (isConfigured && authEmail) {
-      await resetPasswordForEmail(authEmail);
+      await signInWithMagicLink(authEmail);
     }
     setResending(false);
     setCountdown(60);
-    setResendStatus('A new link has been sent to your inbox.');
+    setResendStatus('A new confirmation link has been sent to your inbox.');
+  };
+
+  const getEmailProviderLink = (emailAddress: string) => {
+    const domain = emailAddress.split('@')[1]?.toLowerCase();
+    if (domain === 'gmail.com') return 'https://mail.google.com';
+    if (domain === 'outlook.com' || domain === 'hotmail.com') return 'https://outlook.live.com';
+    if (domain === 'yahoo.com') return 'https://mail.yahoo.com';
+    if (domain === 'icloud.com') return 'https://www.icloud.com/mail';
+    return `mailto:${emailAddress}`;
   };
 
   return (
@@ -51,7 +60,7 @@ export function CheckInboxView() {
           <span className="font-semibold text-slate-800 dark:text-slate-200 break-all">
             {authEmail || 'your email address'}
           </span>
-          . Click the link to complete verification or reset your password.
+          . Please click the link in your email to authenticate and access your account.
         </p>
 
         {resendStatus && (
@@ -60,16 +69,16 @@ export function CheckInboxView() {
           </div>
         )}
 
-        {/* Simulating reset password step */}
         <div className="space-y-3 mb-6">
-          <button
-            type="button"
-            onClick={() => setCurrentScreen('reset-password')}
-            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
+          <a
+            href={getEmailProviderLink(authEmail)}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="w-full py-3 px-4 rounded-xl font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
           >
-            <span>Proceed to set new password</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+            <span>Open Email Inbox</span>
+            <ExternalLink className="w-4 h-4" />
+          </a>
 
           <button
             type="button"
@@ -79,7 +88,7 @@ export function CheckInboxView() {
           >
             <RotateCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
             <span>
-              {countdown > 0 ? `Resend email in ${countdown}s` : 'Resend email link'}
+              {countdown > 0 ? `Resend email in ${countdown}s` : 'Resend confirmation link'}
             </span>
           </button>
         </div>
