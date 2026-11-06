@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { User, Session } from '@supabase/supabase-js';
 import { getSupabase, isSupabaseConfigured, getAuthRedirectUrl } from '@/services/supabase/client';
 
+export type AuthMode = 'signup' | 'magiclink' | 'recovery';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -11,6 +13,8 @@ interface AuthContextType {
   isConfigured: boolean;
   authEmail: string;
   setAuthEmail: (email: string) => void;
+  authMode: AuthMode | null;
+  setAuthMode: (mode: AuthMode | null) => void;
   authNotice: string | null;
   clearAuthNotice: () => void;
 
@@ -24,6 +28,18 @@ interface AuthContextType {
     error?: string;
   }>;
   signInWithMagicLink: (email: string) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
+  resendConfirmationEmail: (email: string) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
+  verifyOtpCode: (
+    email: string,
+    token: string,
+    type?: 'email' | 'signup' | 'magiclink' | 'recovery'
+  ) => Promise<{
     success: boolean;
     error?: string;
   }>;
@@ -47,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sessionRef = useRef(session);
   const [loading, setLoading] = useState<boolean>(() => isConfigured);
   const [authEmail, setAuthEmail] = useState<string>('');
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -364,6 +381,99 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resendConfirmationEmail = async (email: string) => {
+    const supabase = getSupabase();
+    if (!supabase) {
+      return {
+        success: false,
+        error:
+          'Supabase credentials are not configured in environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.',
+      };
+    }
+
+    try {
+      const redirectUrl = getAuthRedirectUrl('/auth/callback');
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to resend confirmation email.',
+      };
+    }
+  };
+
+  const verifyOtpCode = async (
+    email: string,
+    token: string,
+    type: 'email' | 'signup' | 'magiclink' | 'recovery' = 'email'
+  ) => {
+    const supabase = getSupabase();
+    if (!supabase) {
+      return {
+        success: false,
+        error:
+          'Supabase credentials are not configured in environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.',
+      };
+    }
+
+    const cleanToken = token.trim();
+    if (!cleanToken || cleanToken.length < 6) {
+      return {
+        success: false,
+        error: 'Please enter a valid 6-digit verification code.',
+      };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: cleanToken,
+        type: type as any,
+      });
+
+      if (error) {
+        // Fallback attempt to generic 'email' type if a specific type failed
+        if (type !== 'email') {
+          const fallback = await supabase.auth.verifyOtp({
+            email: email.trim(),
+            token: cleanToken,
+            type: 'email',
+          });
+          if (!fallback.error && fallback.data.session) {
+            setSession(fallback.data.session);
+            setUser(fallback.data.user);
+            return { success: true };
+          }
+        }
+        return { success: false, error: error.message };
+      }
+
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.user);
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to verify authentication code.',
+      };
+    }
+  };
+
   const resetPasswordForEmail = async (email: string) => {
     const supabase = getSupabase();
     if (!supabase) {
@@ -374,7 +484,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const redirectUrl = getAuthRedirectUrl('/auth/callback?next=/');
+      const redirectUrl = getAuthRedirectUrl('/auth/callback?next=/&view=reset-password');
 
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: redirectUrl,
@@ -442,11 +552,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isConfigured,
         authEmail,
         setAuthEmail,
+        authMode,
+        setAuthMode,
         authNotice,
         clearAuthNotice,
         signUp,
         signIn,
         signInWithMagicLink,
+        resendConfirmationEmail,
+        verifyOtpCode,
         resetPasswordForEmail,
         updatePassword,
         signOut,

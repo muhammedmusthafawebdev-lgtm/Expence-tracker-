@@ -8,7 +8,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 export function ForgotPasswordView() {
   const { setCurrentScreen } = useApp();
-  const { setAuthEmail, resetPasswordForEmail, isConfigured } = useAuth();
+  const { setAuthEmail, resetPasswordForEmail, isConfigured, setAuthMode } = useAuth();
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,6 +38,7 @@ export function ForgotPasswordView() {
     }
 
     setAuthEmail(trimmed);
+    setAuthMode('recovery');
     setCurrentScreen('check-inbox');
   };
 

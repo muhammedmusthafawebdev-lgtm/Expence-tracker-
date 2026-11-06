@@ -236,7 +236,17 @@ const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetItem[] = [
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>('welcome');
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const view = url.searchParams.get('view') as AppScreen | null;
+      const type = url.searchParams.get('type');
+      if (view === 'reset-password' || type === 'recovery') {
+        return 'reset-password';
+      }
+    }
+    return 'welcome';
+  });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // Core state: strict zero fake data defaults

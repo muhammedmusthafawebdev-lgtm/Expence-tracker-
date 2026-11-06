@@ -71,6 +71,8 @@ async function testAuthSuite() {
   assert(authContent.includes("signInWithOtp"), 'AuthContext implements signInWithMagicLink with signInWithOtp');
   assert(authContent.includes("signInWithPassword"), 'AuthContext implements signIn with signInWithPassword');
   assert(authContent.includes("signUp"), 'AuthContext implements signUp with full_name metadata');
+  assert(authContent.includes("resendConfirmationEmail"), 'AuthContext implements resendConfirmationEmail for signup');
+  assert(authContent.includes("verifyOtpCode"), 'AuthContext implements verifyOtpCode for manual 6-digit code entry');
   assert(authContent.includes("onAuthStateChange"), 'Subscribes to onAuthStateChange for real-time session sync');
 
   // Test 4: MagicLinkView Implementation
@@ -78,12 +80,21 @@ async function testAuthSuite() {
   const magicLinkPath = path.resolve(process.cwd(), 'components/auth/MagicLinkView.tsx');
   const magicLinkContent = fs.readFileSync(magicLinkPath, 'utf8');
   assert(magicLinkContent.includes("signInWithMagicLink"), 'Calls genuine signInWithMagicLink');
+  assert(magicLinkContent.includes("verifyOtpCode"), 'MagicLinkView provides 6-digit OTP code fallback');
   assert(!magicLinkContent.includes("Sparkles"), 'No AI Sparkles icons on Magic Link screen');
   assert(!magicLinkContent.includes("Frontend-Only Phase Notice"), 'Zero obsolete Frontend-Only Phase Notice text');
   assert(magicLinkContent.includes("Open Email Inbox"), 'Provides user action to open their email client');
 
-  // Test 5: Login & SignUp Screen Quality
-  console.log('\n📋 Test Suite 5: Login & Sign Up Screens');
+  // Test 5: CheckInboxView Implementation
+  console.log('\n📋 Test Suite 5: Check Inbox Screen & OTP Handling');
+  const checkInboxPath = path.resolve(process.cwd(), 'components/auth/CheckInboxView.tsx');
+  const checkInboxContent = fs.readFileSync(checkInboxPath, 'utf8');
+  assert(checkInboxContent.includes("resendConfirmationEmail"), 'CheckInboxView uses resendConfirmationEmail for signup');
+  assert(checkInboxContent.includes("verifyOtpCode"), 'CheckInboxView provides 6-digit verification code entry');
+  assert(checkInboxContent.includes("Enter 6-digit verification code"), 'Clear user prompt for 6-digit code');
+
+  // Test 6: Login & SignUp Screen Quality
+  console.log('\n📋 Test Suite 6: Login & Sign Up Screens');
   const loginPath = path.resolve(process.cwd(), 'components/auth/LoginView.tsx');
   const loginContent = fs.readFileSync(loginPath, 'utf8');
   assert(loginContent.includes("signIn("), 'LoginView executes real signIn');
@@ -98,15 +109,20 @@ async function testAuthSuite() {
     'Properly inspects requiresEmailConfirmation before advancing to dashboard'
   );
 
-  // Test 6: Route Protection in ScreenRouter
-  console.log('\n📋 Test Suite 6: Route Protection & Session Loading State');
+  // Test 7: Route Protection in ScreenRouter
+  console.log('\n📋 Test Suite 7: Route Protection & Session Loading State');
   const routerPath = path.resolve(process.cwd(), 'components/views/ScreenRouter.tsx');
   const routerContent = fs.readFileSync(routerPath, 'utf8');
   assert(routerContent.includes("isConfigured && loading"), 'Displays session verification loading state during auth checks');
   assert(routerContent.includes("isConfigured && !user && !isAuthScreen"), 'Enforces route protection for unauthenticated users');
 
-  // Test 7: Global Codebase Search for Obsolete Phase Notices
-  console.log('\n📋 Test Suite 7: Clean Codebase Guarantee');
+  // Test 8: Callback Route Error Code Handling
+  console.log('\n📋 Test Suite 8: Callback Route Error Handling & otp_expired Protection');
+  assert(callbackContent.includes("errorCode"), 'Reads error_code parameter from callback URL');
+  assert(callbackContent.includes("otp_expired"), 'Provides specialized handling for otp_expired error code');
+
+  // Test 9: Global Codebase Search for Obsolete Phase Notices
+  console.log('\n📋 Test Suite 9: Clean Codebase Guarantee');
   const appShellPath = path.resolve(process.cwd(), 'components/layout/AppShell.tsx');
   const appShellContent = fs.readFileSync(appShellPath, 'utf8');
   assert(!appShellContent.includes("Phase 1 not completed"), 'No Phase 1 not completed notice in AppShell');

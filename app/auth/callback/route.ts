@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const tokenHash = requestUrl.searchParams.get('token_hash');
   const type = requestUrl.searchParams.get('type');
+  const errorCode = requestUrl.searchParams.get('error_code');
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
   const next = requestUrl.searchParams.get('next') || '/';
@@ -25,10 +26,15 @@ export async function GET(request: NextRequest) {
   // Create destination URL
   const targetUrl = new URL(safeNext, requestUrl.origin);
 
-  // If Supabase returned an auth error (e.g., expired OTP link)
-  if (error) {
-    targetUrl.searchParams.set('auth_error', error);
-    if (errorDescription) {
+  // If Supabase returned an auth error (e.g., expired OTP link or rejected redirect)
+  if (error || errorCode) {
+    targetUrl.searchParams.set('auth_error', errorCode || error || 'auth_error');
+    if (errorCode === 'otp_expired' || errorDescription?.toLowerCase().includes('expired')) {
+      targetUrl.searchParams.set(
+        'auth_error_description',
+        'Your email authentication link has expired or has already been used. Please request a new link or enter your 6-digit verification code.'
+      );
+    } else if (errorDescription) {
       targetUrl.searchParams.set('auth_error_description', errorDescription);
     }
     return NextResponse.redirect(targetUrl);

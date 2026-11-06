@@ -8,10 +8,20 @@ import { Mail, Loader2, AlertCircle, CheckCircle2, ArrowRight, ExternalLink } fr
 
 export function MagicLinkView() {
   const { setCurrentScreen, userProfile, updateProfile } = useApp();
-  const { signInWithMagicLink, isConfigured, authNotice, clearAuthNotice } = useAuth();
+  const {
+    signInWithMagicLink,
+    verifyOtpCode,
+    setAuthEmail,
+    setAuthMode,
+    isConfigured,
+    authNotice,
+    clearAuthNotice,
+  } = useAuth();
 
   const [email, setEmail] = useState(() => userProfile.email || '');
+  const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sentSuccess, setSentSuccess] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -61,10 +71,41 @@ export function MagicLinkView() {
 
       setSentSuccess(true);
       setCountdown(60);
+      setAuthEmail(trimmed);
+      setAuthMode('magiclink');
     } catch (err: unknown) {
       setLoading(false);
       setErrorMessage(
         err instanceof Error ? err.message : 'An unexpected error occurred while sending the magic link.'
+      );
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    const cleanCode = otpCode.trim();
+    if (!cleanCode || cleanCode.length < 6) {
+      setErrorMessage('Please enter the 6-digit verification code from your email.');
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const result = await verifyOtpCode(email.trim().toLowerCase(), cleanCode, 'magiclink');
+      setVerifying(false);
+
+      if (!result.success) {
+        setErrorMessage(result.error || 'Verification code is invalid or has expired.');
+        return;
+      }
+
+      setCurrentScreen('dashboard');
+    } catch (err: unknown) {
+      setVerifying(false);
+      setErrorMessage(
+        err instanceof Error ? err.message : 'An error occurred while verifying the code.'
       );
     }
   };
@@ -109,10 +150,43 @@ export function MagicLinkView() {
               <div className="space-y-1 text-xs">
                 <p className="font-semibold text-slate-900 dark:text-white">Magic link dispatched</p>
                 <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  We sent a login link to <span className="font-semibold text-slate-900 dark:text-white break-all">{email}</span>. Click the link in your email to authenticate.
+                  We sent a login link and code to <span className="font-semibold text-slate-900 dark:text-white break-all">{email}</span>. You can tap the link or enter the 6-digit code below.
                 </p>
               </div>
             </div>
+
+            {/* 6-Digit Code Fallback Form */}
+            <form onSubmit={handleVerifyOtp} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 text-left">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Or enter the 6-digit code from your email:
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
+                  placeholder="123456"
+                  maxLength={8}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  className="flex-1 px-3 py-2 rounded-xl text-center font-mono tracking-widest text-base bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white text-slate-900 dark:text-white"
+                />
+                <button
+                  type="submit"
+                  disabled={verifying || otpCode.length < 6}
+                  className="py-2 px-3.5 rounded-xl font-medium text-xs bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 min-h-[40px]"
+                >
+                  {verifying ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <span>Verify Code</span>
+                  )}
+                </button>
+              </div>
+            </form>
 
             <div className="space-y-2">
               <a

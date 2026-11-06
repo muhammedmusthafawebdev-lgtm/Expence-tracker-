@@ -8,7 +8,7 @@ import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function SignUpView() {
   const { setCurrentScreen, updateProfile } = useApp();
-  const { signUp, isConfigured, setAuthEmail } = useAuth();
+  const { signUp, isConfigured, setAuthEmail, setAuthMode } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -90,6 +90,7 @@ export function SignUpView() {
       // If email confirmation is required by Supabase, show check-inbox screen
       // Do NOT redirect to dashboard before authentication is established
       if (result.requiresEmailConfirmation) {
+        setAuthMode('signup');
         setCurrentScreen('check-inbox');
       } else {
         setCurrentScreen('dashboard');
