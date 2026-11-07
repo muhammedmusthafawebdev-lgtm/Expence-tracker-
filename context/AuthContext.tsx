@@ -371,7 +371,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: email.trim(),
         options: {
           emailRedirectTo: redirectUrl,
-          shouldCreateUser: false,
+          shouldCreateUser: true,
         },
       });
 

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     if (errorCode === 'otp_expired' || errorDescription?.toLowerCase().includes('expired')) {
       targetUrl.searchParams.set(
         'auth_error_description',
-        'Your email authentication link has expired or has already been used. Please request a new link or enter your 6-digit verification code.'
+        'Your email authentication link has expired or has already been used. Please request a new Magic Link.'
       );
     } else if (errorDescription) {
       targetUrl.searchParams.set('auth_error_description', errorDescription);

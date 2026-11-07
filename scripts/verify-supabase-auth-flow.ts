@@ -72,7 +72,7 @@ async function testAuthSuite() {
   assert(authContent.includes("exchangeCodeForSession"), 'AuthContext exchanges authorization code for session');
   assert(authContent.includes("verifyOtpTokenHash"), 'AuthContext provides verifyOtpTokenHash method');
   assert(authContent.includes("signInWithOtp"), 'AuthContext implements signInWithMagicLink with signInWithOtp');
-  assert(authContent.includes("shouldCreateUser: false"), 'signInWithMagicLink sets shouldCreateUser: false to prevent duplicate accounts');
+  assert(authContent.includes("shouldCreateUser: true"), 'signInWithMagicLink configures shouldCreateUser: true so magic links dispatch to any user email');
   assert(authContent.includes("signUp"), 'AuthContext implements signUp with full_name metadata');
   assert(authContent.includes("resendConfirmationEmail"), 'AuthContext implements resendConfirmationEmail for signup');
 
