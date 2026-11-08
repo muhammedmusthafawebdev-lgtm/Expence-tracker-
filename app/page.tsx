@@ -7,6 +7,7 @@ import { AppProvider } from '@/context/AppContext';
 import { AppShell } from '@/components/layout/AppShell';
 import { ScreenRouter } from '@/components/views/ScreenRouter';
 import { RouteSeoManager } from '@/components/seo/RouteSeoManager';
+import { AuthSupervisorPanel } from '@/components/auth/AuthSupervisorPanel';
 
 export default function HomePage() {
   return (
@@ -17,6 +18,7 @@ export default function HomePage() {
           <AppShell>
             <ScreenRouter />
           </AppShell>
+          <AuthSupervisorPanel />
         </AppProvider>
       </AuthProvider>
     </ThemeProvider>

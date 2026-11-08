@@ -75,12 +75,16 @@ export function formatAuthErrorMessage(err: unknown, defaultMessage: string = 'A
     return 'Unable to connect to the Supabase authentication server. Please check your internet connection or verify that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are configured correctly in your Vercel deployment.';
   }
 
-  if (lower.includes('user_already_exists') || lower.includes('user already registered') || lower.includes('already exists')) {
-    return 'An account with this email address already exists. Please sign in or use Magic Link.';
+  if (lower.includes('email_address_not_authorized') || lower.includes('not authorized')) {
+    return 'Your email address is not authorized on this Supabase project. When using default Supabase SMTP, your recipient email address must be added as a member of your Supabase Organization team.';
   }
 
   if (lower.includes('rate limit') || lower.includes('too many requests') || lower.includes('over_email_send_rate_limit')) {
-    return 'Too many authentication attempts. Please wait a few minutes before trying again or configure custom SMTP in Supabase Dashboard.';
+    return 'Default Supabase SMTP rate limit reached (2 emails per hour). Please wait 1 hour before retrying or configure Custom SMTP in your Supabase Dashboard.';
+  }
+
+  if (lower.includes('user_already_exists') || lower.includes('user already registered') || lower.includes('already exists')) {
+    return 'An account with this email address already exists. Please sign in or use Magic Link.';
   }
 
   return rawMessage || defaultMessage;
@@ -434,14 +438,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Failed to resend confirmation email.') };
       }
 
       return { success: true };
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to resend confirmation email.',
+        error: formatAuthErrorMessage(err, 'Failed to resend confirmation email.'),
       };
     }
   };
@@ -499,7 +503,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return { success: true };
           }
         }
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Verification failed.') };
       }
 
       if (data.session) {
@@ -511,7 +515,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to verify authentication code.',
+        error: formatAuthErrorMessage(err, 'Failed to verify authentication code.'),
       };
     }
   };
@@ -566,7 +570,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return { success: true };
           }
         }
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Verification link is invalid or expired.') };
       }
 
       if (data.session) {
@@ -580,7 +584,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to verify token link.',
+        error: formatAuthErrorMessage(err, 'Failed to verify token link.'),
       };
     }
   };
@@ -602,14 +606,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Failed to initiate password reset.') };
       }
 
       return { success: true };
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to initiate password reset.',
+        error: formatAuthErrorMessage(err, 'Failed to initiate password reset.'),
       };
     }
   };
