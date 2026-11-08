@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, formatAuthErrorMessage } from '@/context/AuthContext';
 import { AuthLayout } from './AuthLayout';
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -98,7 +98,7 @@ export function SignUpView() {
     } catch (err: unknown) {
       setLoading(false);
       setErrorMessage(
-        err instanceof Error ? err.message : 'An unexpected error occurred during signup.'
+        formatAuthErrorMessage(err, 'An unexpected error occurred during signup.')
       );
     }
   };

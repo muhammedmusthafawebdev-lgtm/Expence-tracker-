@@ -61,6 +61,31 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+export function formatAuthErrorMessage(err: unknown, defaultMessage: string = 'An error occurred during authentication.'): string {
+  if (!err) return defaultMessage;
+  const rawMessage = err instanceof Error ? err.message : typeof err === 'object' && err !== null && 'message' in err ? String((err as any).message) : String(err);
+  const lower = rawMessage.toLowerCase();
+
+  if (
+    lower.includes('load failed') ||
+    lower.includes('failed to fetch') ||
+    lower.includes('networkerror') ||
+    lower.includes('network error')
+  ) {
+    return 'Unable to connect to the Supabase authentication server. Please check your internet connection or verify that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are configured correctly in your Vercel deployment.';
+  }
+
+  if (lower.includes('user_already_exists') || lower.includes('user already registered') || lower.includes('already exists')) {
+    return 'An account with this email address already exists. Please sign in or use Magic Link.';
+  }
+
+  if (lower.includes('rate limit') || lower.includes('too many requests') || lower.includes('over_email_send_rate_limit')) {
+    return 'Too many authentication attempts. Please wait a few minutes before trying again or configure custom SMTP in Supabase Dashboard.';
+  }
+
+  return rawMessage || defaultMessage;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -288,7 +313,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Failed to create account.') };
       }
 
       // If email confirmation is enabled on Supabase, data.session is null and data.user is pending confirmation
@@ -305,7 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'An unexpected error occurred during signup.',
+        error: formatAuthErrorMessage(err, 'An unexpected error occurred during signup.'),
       };
     }
   };
@@ -340,7 +365,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             error: 'Invalid email or password. Please verify your credentials or sign in with Magic Link.',
           };
         }
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Failed to sign in.') };
       }
 
       setSession(data.session);
@@ -349,7 +374,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to sign in.',
+        error: formatAuthErrorMessage(err, 'Failed to sign in.'),
       };
     }
   };
@@ -376,14 +401,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: formatAuthErrorMessage(error, 'Failed to send magic link.') };
       }
 
       return { success: true };
     } catch (err: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to send magic link.',
+        error: formatAuthErrorMessage(err, 'Failed to send magic link.'),
       };
     }
   };
